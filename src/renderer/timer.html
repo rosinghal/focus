@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'" />
+    <title>Pomodoro</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="timer">
+      <button type="button" class="timer-close" id="close" aria-label="Close">×</button>
+      <p class="timer-mode" id="mode"></p>
+      <p class="timer-time" id="time"></p>
+      <a href="#" class="timer-task" id="task"></a>
+      <div class="timer-summary hidden" id="summary">
+        <p id="summary-focus"></p>
+        <p class="muted" id="summary-today"></p>
+        <p class="ok hidden" id="task-done">Task marked complete ✓</p>
+        <div class="timer-actions" id="complete-row">
+          <button type="button" id="complete">Mark task complete</button>
+          <span class="error" id="complete-error"></span>
+        </div>
+      </div>
+    </main>
+    <script src="escape.js"></script>
+    <script src="timer.js"></script>
+  </body>
+</html>

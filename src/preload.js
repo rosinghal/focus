@@ -1,0 +1,28 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('focusLock', {
+  status: () => ipcRenderer.invoke('lock:status'),
+  oneMoreMinute: () => ipcRenderer.invoke('lock:grace'),
+  requestPasscode: () => ipcRenderer.invoke('lock:request-passcode'),
+  submitPasscode: (passcode) => ipcRenderer.invoke('lock:passcode', passcode),
+  sendOtp: () => ipcRenderer.invoke('lock:send-otp'),
+  submitOtp: (code) => ipcRenderer.invoke('lock:otp', code),
+  linkWhatsApp: () => ipcRenderer.invoke('settings:whatsapp-link'),
+  unlinkWhatsApp: (approval) => ipcRenderer.invoke('settings:whatsapp-unlink', approval),
+  onWhatsAppUpdate: (callback) => ipcRenderer.on('whatsapp:update', (_event, update) => callback(update)),
+  startSession: () => ipcRenderer.invoke('blocked:start-session'),
+  getSettings: () => ipcRenderer.invoke('settings:get'),
+  saveSettings: (settings) => ipcRenderer.invoke('settings:save', settings),
+  sendSettingsOtp: (settings) => ipcRenderer.invoke('settings:send-otp', settings),
+  pomodoroStatus: () => ipcRenderer.invoke('pomodoro:status'),
+  searchTasks: (goal) => ipcRenderer.invoke('pomodoro:search', goal),
+  startPomodoro: (choice) => ipcRenderer.invoke('pomodoro:start', choice),
+  timerStatus: () => ipcRenderer.invoke('timer:status'),
+  openTimerTask: () => ipcRenderer.invoke('timer:open-task'),
+  completeTimerTask: () => ipcRenderer.invoke('timer:complete-task'),
+  onTimerUpdate: (callback) => ipcRenderer.on('timer:update', (_event, view) => callback(view)),
+  reminderStatus: () => ipcRenderer.invoke('reminder:status'),
+  backToMeeting: () => ipcRenderer.invoke('reminder:back'),
+  presenting: () => ipcRenderer.invoke('reminder:presenting'),
+  quit: (passcode) => ipcRenderer.invoke('quit:confirm', passcode),
+});

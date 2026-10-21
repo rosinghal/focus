@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'" />
+    <title>Quit Focus</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="blocked">
+      <div class="moon">🌙</div>
+      <form id="form" autocomplete="off">
+        <h1>Enter passcode to quit</h1>
+        <p class="muted">Blocking stops until Focus is opened again.</p>
+        <input type="password" id="passcode" inputmode="numeric" maxlength="4" pattern="\d{4}" required autofocus />
+        <p class="error" id="error"></p>
+        <div class="actions">
+          <button type="button" id="cancel">Cancel</button>
+          <button type="submit" class="primary" id="quit">Quit</button>
+        </div>
+      </form>
+    </main>
+    <script src="escape.js"></script>
+    <script src="quit.js"></script>
+  </body>
+</html>

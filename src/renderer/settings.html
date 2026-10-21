@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:" />
+    <title>Focus Settings</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="settings">
+      <h1>Focus</h1>
+      <p class="notice hidden" id="locked">Settings are read-only during sleep hours.</p>
+
+      <nav class="tabs" role="tablist">
+        <button type="button" role="tab" data-tab="schedule">Schedule</button>
+        <button type="button" role="tab" data-tab="modes">Modes</button>
+        <button type="button" role="tab" data-tab="passcode">Passcode</button>
+      </nav>
+
+      <form id="form" autocomplete="off">
+        <section class="panel" role="tabpanel" data-panel="schedule">
+          <h2>Sleep hours</h2>
+          <p class="muted hint">
+            The screen locks during sleep hours. You get One More Minute once a night and the passcode once a night;
+            after that, each 15 minutes needs a code sent over WhatsApp.
+          </p>
+          <div class="row">
+            <label>Lock from <input type="time" id="start" required /></label>
+            <label>Until <input type="time" id="end" required /></label>
+          </div>
+        </section>
+
+        <section class="panel" role="tabpanel" data-panel="modes">
+          <h2>Entertainment mode</h2>
+          <p class="muted hint">Entertainment sites and apps are blocked until you start Entertainment mode. Hitting one
+            offers 25 minutes where only these work and other apps are hidden. Sites are covered in Safari, Chrome, Brave,
+            Edge, Arc, Vivaldi and Chromium. One per line.</p>
+          <div class="row">
+            <label>Websites
+              <textarea id="sites" rows="6" spellcheck="false" placeholder="youtube.com&#10;instagram.com"></textarea>
+            </label>
+            <label>Apps
+              <textarea id="apps" rows="6" spellcheck="false" placeholder="Discord&#10;Steam"></textarea>
+            </label>
+          </div>
+          <h2>Kid mode</h2>
+          <p class="muted hint">stick.cafe is always blocked. Opening it offers 31 minutes of Kid mode, once a day,
+            where only stick.cafe works.</p>
+          <h2>Pomodoro</h2>
+          <p class="muted hint">Start Pomodoro from the menu bar: 25 minutes on one ClickUp task, then a 5-minute break.
+            Entertainment and Kid mode can't start during focus. Create a token in ClickUp › Settings › Apps.</p>
+          <label><span id="clickup-label">ClickUp API token</span>
+            <input type="password" id="clickup-token" spellcheck="false" placeholder="pk_…" />
+          </label>
+          <div class="row">
+            <label>Workspace ID or link
+              <input type="text" id="clickup-team" spellcheck="false" placeholder="Required for Pomodoro" />
+            </label>
+            <label>List for new tasks (ID or link)
+              <input type="text" id="clickup-list" spellcheck="false" placeholder="Required to create tasks" />
+            </label>
+          </div>
+        </section>
+
+        <section class="panel" role="tabpanel" data-panel="passcode">
+          <h2>Passcode</h2>
+          <div class="row">
+            <label><span id="new-label">New passcode</span>
+              <input type="password" id="new" inputmode="numeric" maxlength="4" pattern="\d{4}" />
+            </label>
+            <label>Confirm <input type="password" id="confirm" inputmode="numeric" maxlength="4" pattern="\d{4}" /></label>
+          </div>
+          <p class="muted hint">Tip: let someone else set the passcode, like Screen Time for a family member.</p>
+          <label>WhatsApp number for unlock codes
+            <input type="tel" id="wa-recipient" spellcheck="false" placeholder="+44 7700 900123" />
+          </label>
+          <p class="muted hint">Someone you trust, with the country code. After the passcode is used, they get the codes
+            from your WhatsApp account and decide whether to share them.</p>
+        </section>
+
+        <div class="actions" id="save-row">
+          <button type="submit" class="primary" id="save">Save</button>
+        </div>
+        <ul id="messages"></ul>
+      </form>
+
+      <section class="panel" role="tabpanel" data-panel="passcode">
+        <h2>WhatsApp</h2>
+        <p class="muted hint" id="wa-hint"></p>
+        <p id="wa-status"></p>
+        <img id="wa-qr" class="qr hidden" alt="WhatsApp QR code" />
+        <p class="muted hint hidden" id="wa-qr-help">On your phone: WhatsApp › Settings › Linked Devices › Link a Device.</p>
+        <div class="actions">
+          <button type="button" id="wa-link" class="primary hidden">Link WhatsApp</button>
+          <button type="button" id="wa-unlink" class="hidden">Unlink</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="confirm-dialog" class="confirm-dialog">
+      <form id="confirm-form" autocomplete="off">
+        <h2>Approve looser settings</h2>
+        <ul id="changes" class="changes"></ul>
+        <p class="muted hint" id="verify-hint"></p>
+        <button type="button" id="send-code" class="hidden">Send code via WhatsApp</button>
+        <input type="password" id="code" inputmode="numeric" required />
+        <p class="error" id="confirm-error"></p>
+        <div class="actions">
+          <button type="button" id="confirm-cancel">Cancel</button>
+          <button type="submit" class="primary" id="confirm-save">Save</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="escape.js"></script>
+    <script src="settings.js"></script>
+  </body>
+</html>

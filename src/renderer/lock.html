@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'" />
+    <title>Focus</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="lock">
+      <div class="moon">🌙</div>
+      <div class="clock" id="clock"></div>
+      <h1>Sleep hours. Time to rest.</h1>
+      <p class="muted" id="until"></p>
+
+      <section class="choices" id="choices">
+        <button id="grace" class="hidden">One More Minute</button>
+        <button id="ask" class="primary">Enter Passcode</button>
+        <p class="muted hidden" id="otp-note"></p>
+      </section>
+
+      <section class="passcode hidden" id="passcode">
+        <p id="prompt"></p>
+        <p class="delay hidden" id="delay"></p>
+        <div class="dots" id="dots"></div>
+        <p class="error" id="error"></p>
+        <button class="link hidden" id="resend"></button>
+        <div class="keypad" id="keypad">
+          <button data-digit="1">1</button><button data-digit="2">2</button><button data-digit="3">3</button>
+          <button data-digit="4">4</button><button data-digit="5">5</button><button data-digit="6">6</button>
+          <button data-digit="7">7</button><button data-digit="8">8</button><button data-digit="9">9</button>
+          <button class="text" id="cancel">Cancel</button><button data-digit="0">0</button
+          ><button class="text" id="delete">Delete</button>
+        </div>
+      </section>
+
+      <section class="week hidden" id="week">
+        <div class="week-head">
+          <span>Last 7 nights</span>
+          <span class="muted" id="week-stats"></span>
+        </div>
+        <div class="nights" id="nights"></div>
+        <p id="motivation"></p>
+        <p class="muted" id="tonight"></p>
+      </section>
+    </main>
+    <script src="lock.js"></script>
+  </body>
+</html>

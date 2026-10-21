@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'" />
+    <title>Meeting</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="timer reminder">
+      <button type="button" class="timer-close" id="close" aria-label="Close">×</button>
+      <p class="timer-mode">Meeting mode</p>
+      <p class="reminder-title" id="title"></p>
+      <p class="muted">Go back and focus on the meeting.</p>
+      <div class="timer-actions">
+        <button type="button" class="primary" id="back">Back to meeting</button>
+        <button type="button" id="presenting">I'm presenting</button>
+      </div>
+    </main>
+    <script src="escape.js"></script>
+    <script src="reminder.js"></script>
+  </body>
+</html>

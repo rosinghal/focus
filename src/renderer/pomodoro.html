@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'" />
+    <title>Pomodoro</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="blocked pomodoro">
+      <div class="moon">🍅</div>
+      <section class="hidden" id="no-token">
+        <h1>Connect ClickUp first</h1>
+        <p class="muted">Every pomodoro starts from a ClickUp task. Add your ClickUp token and workspace in Settings › Modes.</p>
+        <button type="button" class="primary close">OK</button>
+      </section>
+      <form class="hidden" id="goal-form" autocomplete="off">
+        <h1>What's the goal?</h1>
+        <p class="muted" id="goal-hint"></p>
+        <input type="text" id="goal" maxlength="200" autofocus />
+        <p class="muted search-status" id="search-status"></p>
+        <div class="task-list" id="tasks"></div>
+        <p class="error" id="error"></p>
+        <div class="actions">
+          <button type="button" class="close">Cancel</button>
+          <button type="submit" class="primary" id="start">Start</button>
+        </div>
+      </form>
+    </main>
+    <script src="escape.js"></script>
+    <script src="pomodoro.js"></script>
+  </body>
+</html>
