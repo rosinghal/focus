@@ -189,10 +189,11 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .pomodoro h1 { margin-top: 4px; }
 
 /* Timer */
-.timer { position: relative; height: 100vh; overflow: hidden; padding: 14px 18px; -webkit-app-region: drag; }
+.timer { position: relative; overflow: hidden; padding: 14px 18px; -webkit-app-region: drag; }
 .timer p { margin: 0; }
-.timer-close { position: absolute; top: 6px; right: 6px; padding: 2px 8px; border: none; background: none; color: var(--muted); font-size: 18px; line-height: 1; -webkit-app-region: no-drag; }
-.timer-mode { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.timer-close { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: none; border-radius: 6px; background: none; color: var(--muted); font-size: 18px; line-height: 1; -webkit-app-region: no-drag; }
+.timer-close:hover { background: var(--border); color: var(--text); }
+.timer-mode { padding-right: 32px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
 .timer-time { font-size: 34px; font-weight: 300; font-variant-numeric: tabular-nums; }
 .timer-task { display: block; margin-top: 2px; color: var(--accent); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-app-region: no-drag; }
 .timer-summary { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; }

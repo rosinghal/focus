@@ -133,7 +133,9 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   then 5 minutes break (`advancePomodoro` in the tick loop), counted down in the tray title. It can't start during a
   mode, and session offers are suppressed while focusing. Starting shows `renderer/timer.html`, a frameless,
   always-on-top window in the primary display's top-right corner, shown with `showInactive` so it never takes focus;
-  if it is already open it is updated (`timer:update`) rather than replaced. When focus ends or is stopped,
+  if it is already open it is updated (`timer:update`) rather than replaced. Its height follows the content: a
+  `ResizeObserver` in `timer.js` reports it via `timer:resize` (clamped by `TIMER_HEIGHT_LIMITS`). The close button
+  stays last in `timer.html`, because Electron lets a later drag region override an earlier no-drag one. When focus ends or is stopped,
   `finishFocus` appends to `state.pomodoroLog` (today only) and sets `state.pomodoroSummary`, which the window shows
   during the break and after. The renderer gets only the task name; `timer:open-task` opens the URL from main.
   `timer:complete-task` closes the summary's task (`completeTask`: reads the task's list and sets the status picked by

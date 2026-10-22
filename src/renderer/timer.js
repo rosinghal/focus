@@ -51,6 +51,9 @@ $('complete').addEventListener('click', async () => {
   $('complete').textContent = 'Mark task complete';
   if (!result.ok) $('complete-error').textContent = result.error;
 });
+new ResizeObserver(([entry]) => window.focusLock.resizeTimer(entry.target.getBoundingClientRect().height)).observe(
+  document.querySelector('.timer'),
+);
 window.focusLock.onTimerUpdate(render);
 window.focusLock.timerStatus().then(render);
 setInterval(showTime, 1000);

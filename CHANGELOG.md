@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.6.2] - 2026-10-22
+
+### Fixed
+
+- Pomodoro timer: the window fits its content, so the summary no longer has empty space below **Mark task complete**
+  or gets cut off after the task is completed.
+- Pomodoro timer: the close button works when clicking the ×, not just to its right, and has more room around it.
+
 ## [1.6.1] - 2026-10-22
 
 ### Fixed

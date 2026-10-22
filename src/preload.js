@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('focusLock', {
   timerStatus: () => ipcRenderer.invoke('timer:status'),
   openTimerTask: () => ipcRenderer.invoke('timer:open-task'),
   completeTimerTask: () => ipcRenderer.invoke('timer:complete-task'),
+  resizeTimer: (height) => ipcRenderer.invoke('timer:resize', height),
   onTimerUpdate: (callback) => ipcRenderer.on('timer:update', (_event, view) => callback(view)),
   reminderStatus: () => ipcRenderer.invoke('reminder:status'),
   backToMeeting: () => ipcRenderer.invoke('reminder:back'),

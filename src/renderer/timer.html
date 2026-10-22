@@ -8,7 +8,6 @@
   </head>
   <body>
     <main class="timer">
-      <button type="button" class="timer-close" id="close" aria-label="Close">×</button>
       <p class="timer-mode" id="mode"></p>
       <p class="timer-time" id="time"></p>
       <a href="#" class="timer-task" id="task"></a>
@@ -21,6 +20,8 @@
           <span class="error" id="complete-error"></span>
         </div>
       </div>
+      <!-- Last in the DOM: Electron lets later drag regions override earlier no-drag ones. -->
+      <button type="button" class="timer-close" id="close" aria-label="Close">×</button>
     </main>
     <script src="escape.js"></script>
     <script src="timer.js"></script>

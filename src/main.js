@@ -323,27 +323,34 @@ const showPomodoro = () => {
 
 const TIMER_WIDTH = 300;
 const TIMER_MARGIN = 12;
+const TIMER_HEIGHT_LIMITS = [60, 400];
+
+// The renderer reports its content height (`timer:resize`), so this is only the size before the first report.
+let timerHeight = 108;
 
 const timerView = () => pomodoro.timerView(state.pomodoro, state.pomodoroSummary, Date.now());
 
-const timerBounds = (view) => {
+const timerBounds = () => {
   const { workArea } = screen.getPrimaryDisplay();
-  const button = view?.summary && !view.summary.taskCompleted ? 62 : 0;
-  const height = view?.summary ? (view.until ? 172 : 128) + button : 108;
-  return { x: workArea.x + workArea.width - TIMER_WIDTH - TIMER_MARGIN, y: workArea.y + TIMER_MARGIN, width: TIMER_WIDTH, height };
+  return {
+    x: workArea.x + workArea.width - TIMER_WIDTH - TIMER_MARGIN,
+    y: workArea.y + TIMER_MARGIN,
+    width: TIMER_WIDTH,
+    height: timerHeight,
+  };
 };
 
 // Reuses the open timer window so a new pomodoro replaces what it shows.
 const showTimer = () => {
   const view = timerView();
   if (timerWindow && !timerWindow.isDestroyed()) {
-    timerWindow.setBounds(timerBounds(view));
+    timerWindow.setBounds(timerBounds());
     timerWindow.webContents.send('timer:update', view);
     timerWindow.showInactive();
     return;
   }
   timerWindow = new BrowserWindow({
-    ...timerBounds(view),
+    ...timerBounds(),
     show: false,
     frame: false,
     resizable: false,
@@ -363,9 +370,8 @@ const showTimer = () => {
 
 const updateTimer = () => {
   if (!timerWindow || timerWindow.isDestroyed()) return;
-  const view = timerView();
-  timerWindow.setBounds(timerBounds(view));
-  timerWindow.webContents.send('timer:update', view);
+  timerWindow.setBounds(timerBounds());
+  timerWindow.webContents.send('timer:update', timerView());
 };
 
 const finishFocus = (completed) => {
@@ -895,6 +901,13 @@ const registerIpc = () => {
   });
 
   ipcMain.handle('timer:status', (event) => (isTimerSender(event) ? timerView() : null));
+
+  ipcMain.handle('timer:resize', (event, height) => {
+    if (!isTimerSender(event) || !Number.isFinite(height)) return;
+    const [min, max] = TIMER_HEIGHT_LIMITS;
+    timerHeight = Math.min(max, Math.max(min, Math.ceil(height)));
+    timerWindow.setBounds(timerBounds());
+  });
 
   ipcMain.handle('timer:open-task', (event) => {
     if (isTimerSender(event)) openTask();
