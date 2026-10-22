@@ -139,6 +139,7 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .settings .notice { padding: 10px 12px; border-radius: 8px; background: var(--panel); border: 1px solid var(--border); font-size: 13px; }
 .settings ul { margin: 12px 0 0; padding-left: 18px; font-size: 13px; }
 .settings .hint { font-size: 12px; margin-top: 0; }
+.settings .version { margin-top: 24px; font-size: 11px; text-align: center; }
 .settings .tabs { display: flex; gap: 4px; margin: 16px 0 4px; padding: 4px; border-radius: 10px; background: var(--panel); border: 1px solid var(--border); }
 .settings .tabs button { flex: 1; padding: 7px 10px; border: none; border-radius: 7px; background: none; color: var(--muted); font-size: 13px; }
 .settings .tabs button[aria-selected='true'] { background: var(--border); color: var(--text); font-weight: 600; }

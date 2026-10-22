@@ -121,6 +121,7 @@ const init = async () => {
   document.querySelectorAll('[data-tab]').forEach((tab) => tab.addEventListener('click', () => showTab(tab.dataset.tab)));
   const settings = await window.focusLock.getSettings();
   fillForm(settings);
+  $('version').textContent = `Focus ${settings.version}`;
   showTab(settings.hasPasscode ? 'schedule' : 'passcode');
   renderWhatsApp(settings.whatsapp);
   window.focusLock.onWhatsAppUpdate(renderWhatsApp);

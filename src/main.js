@@ -980,6 +980,7 @@ const registerIpc = () => {
       ...toPublicSettings(config),
       editable: settingsEditable(),
       whatsapp: { status: whatsappClient.status },
+      version: app.getVersion(),
     };
   });
 
