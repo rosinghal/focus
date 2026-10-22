@@ -118,12 +118,25 @@ const todayDueDate = (now) => new Date(now.getFullYear(), now.getMonth(), now.ge
 
 const tomorrowDueDate = (now) => todayDueDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
 
-const newTaskBody = (name, userId, now) => ({
-  name,
-  assignees: [userId],
-  due_date: todayDueDate(now),
-  due_date_time: false,
-});
+const HASHTAG = /(^|\s)#([\p{L}\p{N}_-]+)/gu;
+
+// ClickUp stores tag names in lowercase, so "#Bug" and "#bug" are the same tag.
+const parseTaskTitle = (title) => {
+  const text = String(title ?? '');
+  const tags = [...new Set([...text.matchAll(HASHTAG)].map((match) => match[2].toLowerCase()))];
+  return { name: text.replace(HASHTAG, ' ').replace(/\s+/g, ' ').trim(), tags };
+};
+
+const newTaskBody = (title, userId, now) => {
+  const { name, tags } = parseTaskTitle(title);
+  return {
+    name,
+    assignees: [userId],
+    due_date: todayDueDate(now),
+    due_date_time: false,
+    ...(tags.length ? { tags } : {}),
+  };
+};
 
 const createClient = ({ token, teamId, listId }, fetchImpl = fetch, clock = Date.now) => {
   let userId = null;
@@ -168,9 +181,9 @@ const createClient = ({ token, teamId, listId }, fetchImpl = fetch, clock = Date
       words(query).length
         ? matchTasks(query, await assignedTasks())
         : dueTasks(await assignedTasks(dueFilter(now)), now),
-    createTask: async (name, now) => {
+    createTask: async (title, now) => {
       const task = toTask(
-        await request(`/list/${listId}/task`, { method: 'POST', body: JSON.stringify(newTaskBody(name, await me(), now)) }),
+        await request(`/list/${listId}/task`, { method: 'POST', body: JSON.stringify(newTaskBody(title, await me(), now)) }),
       );
       cache.clear();
       return task;
@@ -222,6 +235,7 @@ module.exports = {
   dueFilter,
   todayDueDate,
   tomorrowDueDate,
+  parseTaskTitle,
   newTaskBody,
   createClient,
 };

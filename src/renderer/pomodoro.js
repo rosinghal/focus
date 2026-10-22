@@ -4,13 +4,18 @@ const NEW_TASK = 'new';
 const SEARCH_DELAY_MS = 400;
 const MIN_GOAL_LENGTH = 3;
 
+// Mirrors parseTaskTitle in clickup.js, which the sandboxed renderer can't load.
+const HASHTAG = /(^|\s)#([\p{L}\p{N}_-]+)/gu;
+
 let goal = '';
 let searchTimer = null;
 let searchId = 0;
 let pendingSearch = null;
 let shownTasks = [];
 
-const hasGoal = () => goal.length >= MIN_GOAL_LENGTH;
+const goalName = () => goal.replace(HASHTAG, ' ').replace(/\s+/g, ' ').trim();
+const goalTags = () => [...new Set([...goal.matchAll(HASHTAG)].map((match) => match[2].toLowerCase()))];
+const hasGoal = () => goalName().length >= MIN_GOAL_LENGTH;
 
 const span = (className, textContent) => Object.assign(document.createElement('span'), { className, textContent });
 
@@ -83,7 +88,13 @@ const updateStartLabel = () => {
   $('start').textContent = selected() === NEW_TASK ? 'Create and start' : 'Start';
 };
 
-const sameName = (task) => task.name.trim().toLowerCase() === goal.toLowerCase();
+const sameName = (task) => task.name.trim().toLowerCase() === goalName().toLowerCase();
+
+const newTaskDetail = () => {
+  const small = document.createElement('small');
+  small.append(span('muted', 'New task, due today'), ...goalTags().map((tag) => span('tag', `#${tag}`)));
+  return small;
+};
 
 const renderTasks = (tasks, preferred = selected()) => {
   const offerNew = hasGoal() && !tasks.some(sameName);
@@ -93,7 +104,7 @@ const renderTasks = (tasks, preferred = selected()) => {
     ...tasks.map((task) =>
       option(task.id, task.name, details(task), task.id === keep, starButton(task), openButton(task)),
     ),
-    ...(offerNew ? [option(NEW_TASK, `“${goal}”`, span('muted', 'New task, due today'), keep === NEW_TASK, createButton())] : []),
+    ...(offerNew ? [option(NEW_TASK, `“${goalName()}”`, newTaskDetail(), keep === NEW_TASK, createButton())] : []),
   );
   updateStartLabel();
 };
@@ -106,7 +117,7 @@ const showTasks = (tasks) => {
 };
 
 const runSearch = async (id) => {
-  const result = await window.focusLock.searchTasks(hasGoal() ? goal : '');
+  const result = await window.focusLock.searchTasks(hasGoal() ? goalName() : '');
   if (id !== searchId) return;
   pendingSearch = null;
   $('error').textContent = result.ok ? '' : result.error;

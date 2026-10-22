@@ -19,6 +19,7 @@ const {
   dueFilter,
   todayDueDate,
   tomorrowDueDate,
+  parseTaskTitle,
   newTaskBody,
   createClient,
 } = require('../src/clickup');
@@ -149,6 +150,13 @@ test('toListItem adds the due label and flags overdue tasks only', () => {
   assert.deepEqual([toListItem(task('1', 'A'), now).dueLabel, toListItem(task('1', 'A'), now).overdue], ['', false]);
 });
 
+test('parseTaskTitle moves hashtags out of the name', () => {
+  assert.deepEqual(parseTaskTitle('Fix #bug in login #web-app'), { name: 'Fix in login', tags: ['bug', 'web-app'] });
+  assert.deepEqual(parseTaskTitle('#Bug fix #bug'), { name: 'fix', tags: ['bug'] });
+  assert.deepEqual(parseTaskTitle('Issue#42 and C# docs'), { name: 'Issue#42 and C# docs', tags: [] });
+  assert.deepEqual(parseTaskTitle('#only'), { name: '', tags: ['only'] });
+});
+
 test('new tasks are assigned to me and due today', () => {
   const now = new Date(2026, 9, 21, 23, 30);
   assert.equal(todayDueDate(now), new Date(2026, 9, 21, 12).getTime());
@@ -158,6 +166,7 @@ test('new tasks are assigned to me and due today', () => {
     due_date: todayDueDate(now),
     due_date_time: false,
   });
+  assert.deepEqual(newTaskBody('Fix login #bug #Web', 42, now).tags, ['bug', 'web']);
   assert.match(assignedTasksPath('111', 42, 1), /^\/team\/111\/task\?page=1&assignees\[\]=42&.*order_by=updated$/);
   assert.equal(dueFilter(now), `order_by=due_date&due_date_lt=${new Date(2026, 9, 22).getTime()}`);
 });

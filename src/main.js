@@ -382,11 +382,11 @@ const startPomodoro = (task) => {
 };
 
 const createPomodoroTask = async (input) => {
-  const name = String(input ?? '').trim();
-  if (!name) return { ok: false, error: 'Pick a task or create a new one.' };
+  const title = String(input ?? '').trim();
+  if (!clickup.parseTaskTitle(title).name) return { ok: false, error: 'Give the new task a name, not just tags.' };
   if (!config.clickupListId) return { ok: false, error: 'Set the ClickUp list for new tasks in Settings.' };
   try {
-    const task = await clickupFor(config).createTask(name, new Date());
+    const task = await clickupFor(config).createTask(title, new Date());
     pomodoroMatches.set(task.id, task);
     return { ok: true, task };
   } catch {

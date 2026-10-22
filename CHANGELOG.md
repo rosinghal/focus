@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.6.0] - 2026-10-22
+
+### Added
+
+- Pomodoro: `#hashtags` in a new task's goal become ClickUp tags instead of part of the task name. The new-task tile
+  previews them, and search ignores them.
+
 ## [1.5.0] - 2026-10-22
 
 ### Added

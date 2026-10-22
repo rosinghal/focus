@@ -52,7 +52,7 @@ works. End it early from the menu bar (it still counts as today's use).
 searches the tasks assigned to you as you type and offers a new one (assigned to you, due today): **Create** just adds
 it to ClickUp, **Create and start** also starts the pomodoro. The star on a task sets or clears its high priority in
 ClickUp, and tasks are listed by priority. **+1** after a due date moves the task to tomorrow, and **↗** opens it in
-the browser. You get 25 minutes of focus, then a 5-minute break. A
+the browser. `#hashtags` in a new task's goal become ClickUp tags (`Write notes #docs`). You get 25 minutes of focus, then a 5-minute break. A
 small always-on-top window shows the time left and, when it ends, a summary with **Mark task complete**.
 
 <img src="docs/screenshots/timer.png" alt="Pomodoro timer" width="300" />

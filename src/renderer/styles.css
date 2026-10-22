@@ -178,6 +178,7 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .task .star.starred { color: var(--warn); }
 .task .due { color: var(--muted); }
 .task .due.overdue { color: var(--danger); }
+.task .tag { margin-left: 6px; padding: 0 5px; border-radius: 4px; background: var(--border); color: var(--text); }
 .task .postpone,
 .task .open { padding: 0 4px; border: none; background: none; color: var(--muted); font-size: 12px; font-weight: 600; }
 .task .postpone { margin-left: 4px; border: 1px solid var(--border); border-radius: 4px; font-size: 11px; }
