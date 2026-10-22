@@ -65,7 +65,7 @@ const byPriority = (a, b) => (a.priority ?? NO_PRIORITY) - (b.priority ?? NO_PRI
 
 const dueTasks = (tasks, now) =>
   tasks
-    .filter((task) => task.due !== null && task.due < startOfDay(now, 1))
+    .filter((task) => isDueByToday(task.due, now))
     .sort(byDue)
     .slice(0, MAX_DUE)
     .sort(byPriority);
@@ -80,6 +80,8 @@ const relativeDue = (due, now) => {
   return `Due ${RELATIVE.format(Math.round(days / 30), 'month')}`;
 };
 
+const isDueByToday = (due, now) => due !== null && due < startOfDay(now, 1);
+
 const toListItem = ({ id, name, list, status, due, priority }, now) => ({
   id,
   name,
@@ -87,6 +89,7 @@ const toListItem = ({ id, name, list, status, due, priority }, now) => ({
   status,
   dueLabel: due === null ? '' : relativeDue(due, now),
   overdue: due !== null && due < startOfDay(now),
+  postponable: isDueByToday(due, now),
   priority: priority ?? null,
   starred: isStarred({ priority }),
 });
@@ -112,6 +115,8 @@ const dueFilter = (now) => `order_by=due_date&due_date_lt=${startOfDay(now, 1)}`
 
 // Noon keeps the due date on today whatever timezone ClickUp renders it in.
 const todayDueDate = (now) => new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12).getTime();
+
+const tomorrowDueDate = (now) => todayDueDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
 
 const newTaskBody = (name, userId, now) => ({
   name,
@@ -170,6 +175,15 @@ const createClient = ({ token, teamId, listId }, fetchImpl = fetch, clock = Date
       cache.clear();
       return task;
     },
+    postponeTask: async (taskId, now) => {
+      const due = tomorrowDueDate(now);
+      await request(`/task/${encodeURIComponent(taskId)}`, {
+        method: 'PUT',
+        body: JSON.stringify({ due_date: due, due_date_time: false }),
+      });
+      cache.clear();
+      return due;
+    },
     setStarred: async (taskId, starred) => {
       // null clears the priority, so unstarring an urgent task leaves it with none.
       const priority = starred ? HIGH_PRIORITY : null;
@@ -207,6 +221,7 @@ module.exports = {
   assignedTasksPath,
   dueFilter,
   todayDueDate,
+  tomorrowDueDate,
   newTaskBody,
   createClient,
 };

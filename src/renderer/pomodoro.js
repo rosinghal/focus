@@ -14,22 +14,36 @@ const hasGoal = () => goal.length >= MIN_GOAL_LENGTH;
 
 const span = (className, textContent) => Object.assign(document.createElement('span'), { className, textContent });
 
+const iconButton = (className, textContent, title, onClick) => {
+  const button = Object.assign(document.createElement('button'), { type: 'button', className, textContent, title });
+  button.addEventListener('click', () => onClick(button));
+  return button;
+};
+
+const due = (task) => {
+  const label = span(task.overdue ? 'due overdue' : 'due', task.dueLabel);
+  if (task.postponable) label.append(iconButton('postpone', '+1', 'Move due date to tomorrow', (button) => postpone(button, task)));
+  return label;
+};
+
 const details = (task) => {
   const small = document.createElement('small');
   const parts = [
-    ...(task.dueLabel ? [span(task.overdue ? 'due overdue' : 'due', task.dueLabel)] : []),
+    ...(task.dueLabel ? [due(task)] : []),
     ...[task.list, task.status].filter(Boolean).map((text) => span('muted', text)),
   ];
   parts.forEach((part, index) => small.append(...(index ? [span('muted', ' · '), part] : [part])));
   return small;
 };
 
-const option = (value, title, detail, checked, action) => {
+const option = (value, title, detail, checked, action, link) => {
   const label = document.createElement('label');
   label.className = 'task';
   const radio = Object.assign(document.createElement('input'), { type: 'radio', name: 'task', value, checked });
   const text = document.createElement('span');
-  text.append(Object.assign(document.createElement('strong'), { textContent: title }), detail);
+  const strong = Object.assign(document.createElement('strong'), { textContent: title });
+  if (link) strong.append(link);
+  text.append(strong, detail);
   label.append(radio, text, ...(action ? [action] : []));
   return label;
 };
@@ -48,6 +62,9 @@ const starButton = (task) => {
   button.addEventListener('click', () => toggleStar(button, task));
   return button;
 };
+
+const openButton = (task) =>
+  iconButton('open', '↗', 'Open in ClickUp', () => window.focusLock.openPomodoroTask(task.id));
 
 const createButton = () => {
   const button = Object.assign(document.createElement('button'), { type: 'button', className: 'create', textContent: 'Create' });
@@ -73,7 +90,9 @@ const renderTasks = (tasks, preferred = selected()) => {
   const fallback = tasks[0]?.id ?? (offerNew ? NEW_TASK : null);
   const keep = tasks.some((task) => task.id === preferred) || (offerNew && preferred === NEW_TASK) ? preferred : fallback;
   $('tasks').replaceChildren(
-    ...tasks.map((task) => option(task.id, task.name, details(task), task.id === keep, starButton(task))),
+    ...tasks.map((task) =>
+      option(task.id, task.name, details(task), task.id === keep, starButton(task), openButton(task)),
+    ),
     ...(offerNew ? [option(NEW_TASK, `“${goal}”`, span('muted', 'New task, due today'), keep === NEW_TASK, createButton())] : []),
   );
   updateStartLabel();
@@ -148,6 +167,23 @@ const toggleStar = async (button, task) => {
   }
   shownTasks = shownTasks.map((shown) => (shown.id === result.task.id ? result.task : shown)).sort(byPriority);
   renderTasks(shownTasks);
+};
+
+const postpone = async (button, task) => {
+  button.disabled = true;
+  $('error').textContent = '';
+  const result = await window.focusLock.postponeTask(task.id);
+  button.disabled = false;
+  if (!result.ok) {
+    $('error').textContent = result.error;
+    return;
+  }
+  // The due list only holds tasks due by today, so a postponed one leaves it.
+  shownTasks = hasGoal()
+    ? shownTasks.map((shown) => (shown.id === result.task.id ? result.task : shown))
+    : shownTasks.filter((shown) => shown.id !== result.task.id);
+  renderTasks(shownTasks);
+  if (!hasGoal()) $('search-status').textContent = searchStatus(shownTasks);
 };
 
 const start = async () => {

@@ -178,6 +178,12 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .task .star.starred { color: var(--warn); }
 .task .due { color: var(--muted); }
 .task .due.overdue { color: var(--danger); }
+.task .postpone,
+.task .open { padding: 0 4px; border: none; background: none; color: var(--muted); font-size: 12px; font-weight: 600; }
+.task .postpone { margin-left: 4px; border: 1px solid var(--border); border-radius: 4px; font-size: 11px; }
+.task .open { margin-left: 2px; }
+.task .postpone:hover:not(:disabled),
+.task .open:hover { color: var(--accent); }
 .pomodoro .moon { font-size: 36px; }
 .pomodoro h1 { margin-top: 4px; }
 

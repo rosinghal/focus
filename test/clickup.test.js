@@ -18,6 +18,7 @@ const {
   assignedTasksPath,
   dueFilter,
   todayDueDate,
+  tomorrowDueDate,
   newTaskBody,
   createClient,
 } = require('../src/clickup');
@@ -135,10 +136,15 @@ test('toListItem adds the due label and flags overdue tasks only', () => {
     status: 'to do',
     dueLabel: 'Due 2 days ago',
     overdue: true,
+    postponable: true,
     priority: null,
     starred: false,
   });
   assert.equal(toListItem(task('1', 'A', null, 2), now).starred, true);
+  assert.deepEqual(
+    [day(0, 23), day(1, 0), null].map((due) => toListItem(task('1', 'A', due), now).postponable),
+    [true, false, false],
+  );
   assert.equal(toListItem(task('1', 'A', day(0, 9)), now).overdue, false);
   assert.deepEqual([toListItem(task('1', 'A'), now).dueLabel, toListItem(task('1', 'A'), now).overdue], ['', false]);
 });
@@ -256,6 +262,14 @@ test('toTask reads the priority id', async () => {
   ]);
   const found = await createClient(ids, fetchImpl).searchTasks('report');
   assert.deepEqual(found.map(({ id, priority }) => [id, priority]), [['a', 2], ['b', null]]);
+});
+
+test('postponeTask moves the due date to tomorrow noon', async () => {
+  const { calls, fetchImpl } = fakeFetch([[/\/task\/abc$/, () => ({})]]);
+  const late = new Date(2026, 9, 31, 23, 30);
+  assert.equal(tomorrowDueDate(late), new Date(2026, 10, 1, 12).getTime());
+  assert.equal(await createClient(ids, fetchImpl).postponeTask('abc', late), tomorrowDueDate(late));
+  assert.deepEqual(JSON.parse(calls[0].options.body), { due_date: tomorrowDueDate(late), due_date_time: false });
 });
 
 test('setStarred sets high priority or clears it', async () => {

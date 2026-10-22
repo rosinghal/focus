@@ -951,6 +951,26 @@ const registerIpc = () => {
     return { ok: created.ok, error: created.error };
   });
 
+  ipcMain.handle('pomodoro:postpone', async (event, taskId) => {
+    if (!isPomodoroSender(event) || !clickupReady()) return { ok: false, error: CLICKUP_SETUP_ERROR };
+    const task = pomodoroMatches.get(taskId);
+    if (!task) return { ok: false, error: 'Pick a task from the list.' };
+    const now = new Date();
+    try {
+      const due = await clickupFor(config).postponeTask(task.id, now);
+      pomodoroMatches.set(task.id, { ...task, due });
+      return { ok: true, task: clickup.toListItem({ ...task, due }, now) };
+    } catch {
+      return { ok: false, error: 'Could not move the due date in ClickUp. Try again.' };
+    }
+  });
+
+  ipcMain.handle('pomodoro:open-task', (event, taskId) => {
+    if (!isPomodoroSender(event)) return;
+    const url = pomodoroMatches.get(taskId)?.url;
+    if (/^https:\/\//.test(url ?? '')) shell.openExternal(url);
+  });
+
   ipcMain.handle('pomodoro:star', async (event, taskId, starred) => {
     if (!isPomodoroSender(event) || !clickupReady()) return { ok: false, error: CLICKUP_SETUP_ERROR };
     const task = pomodoroMatches.get(taskId);

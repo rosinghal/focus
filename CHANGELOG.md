@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.5.0] - 2026-10-22
+
+### Added
+
+- Pomodoro: **+1** after a task's due date (today or overdue) moves it to tomorrow in ClickUp, clearing it from
+  today's list.
+- Pomodoro: **↗** after a task's name opens it in the browser.
+
 ## [1.4.0] - 2026-10-22
 
 ### Added
