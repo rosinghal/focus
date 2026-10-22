@@ -8,6 +8,7 @@ let goal = '';
 let searchTimer = null;
 let searchId = 0;
 let pendingSearch = null;
+let shownTasks = [];
 
 const hasGoal = () => goal.length >= MIN_GOAL_LENGTH;
 
@@ -23,31 +24,50 @@ const details = (task) => {
   return small;
 };
 
-const option = (value, title, detail, checked) => {
+const option = (value, title, detail, checked, action) => {
   const label = document.createElement('label');
   label.className = 'task';
   const radio = Object.assign(document.createElement('input'), { type: 'radio', name: 'task', value, checked });
   const text = document.createElement('span');
   text.append(Object.assign(document.createElement('strong'), { textContent: title }), detail);
-  label.append(radio, text);
+  label.append(radio, text, ...(action ? [action] : []));
   return label;
+};
+
+const createButton = () => {
+  const button = Object.assign(document.createElement('button'), { type: 'button', className: 'create', textContent: 'Create' });
+  button.addEventListener('click', createOnly);
+  return button;
 };
 
 const searchStatus = (tasks) => {
   if (!hasGoal()) return tasks.length ? 'Due today and overdue' : 'Nothing due today. Write a goal to find or create a task.';
-  return tasks.length ? 'Matching tasks assigned to you' : 'No matching tasks. Start creates it.';
+  return tasks.length ? 'Matching tasks assigned to you' : 'No matching tasks.';
+};
+
+const selected = () => new FormData($('goal-form')).get('task');
+
+const updateStartLabel = () => {
+  $('start').textContent = selected() === NEW_TASK ? 'Create and start' : 'Start';
+};
+
+const sameName = (task) => task.name.trim().toLowerCase() === goal.toLowerCase();
+
+const renderTasks = (tasks, preferred = selected()) => {
+  const offerNew = hasGoal() && !tasks.some(sameName);
+  const fallback = tasks[0]?.id ?? (offerNew ? NEW_TASK : null);
+  const keep = tasks.some((task) => task.id === preferred) || (offerNew && preferred === NEW_TASK) ? preferred : fallback;
+  $('tasks').replaceChildren(
+    ...tasks.map((task) => option(task.id, task.name, details(task), task.id === keep)),
+    ...(offerNew ? [option(NEW_TASK, `“${goal}”`, span('muted', 'New task, due today'), keep === NEW_TASK, createButton())] : []),
+  );
+  updateStartLabel();
 };
 
 const showTasks = (tasks) => {
-  const checked = new FormData($('goal-form')).get('task');
-  const fallback = tasks[0]?.id ?? (hasGoal() ? NEW_TASK : null);
-  const keep = tasks.some((task) => task.id === checked) ? checked : fallback;
-  $('tasks').replaceChildren(
-    ...tasks.map((task) => option(task.id, task.name, details(task), task.id === keep)),
-    ...(hasGoal()
-      ? [option(NEW_TASK, `Create “${goal}”`, span('muted', 'New task, due today'), keep === NEW_TASK)]
-      : []),
-  );
+  shownTasks = tasks;
+  // The new-task tile was only selected because it stood alone while searching.
+  renderTasks(tasks, null);
   $('search-status').textContent = searchStatus(tasks);
 };
 
@@ -76,8 +96,30 @@ const onGoalInput = () => {
   clearTimeout(searchTimer);
   searchId++;
   pendingSearch = null;
+  shownTasks = [];
+  renderTasks([]);
   $('search-status').textContent = hasGoal() ? 'Searching…' : 'Loading tasks due today…';
   searchTimer = setTimeout(search, SEARCH_DELAY_MS);
+};
+
+const createOnly = async (event) => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  $('error').textContent = '';
+  const result = await window.focusLock.createTask(goal);
+  button.disabled = false;
+  if (!result.ok) {
+    $('error').textContent = result.error;
+    return;
+  }
+  // A search still in flight would replace the list without the new task.
+  clearTimeout(searchTimer);
+  searchTimer = null;
+  searchId++;
+  pendingSearch = null;
+  shownTasks = [result.task, ...shownTasks];
+  renderTasks(shownTasks, result.task.id);
+  $('search-status').textContent = 'Task created in ClickUp';
 };
 
 const start = async () => {
@@ -86,7 +128,7 @@ const start = async () => {
     await (searchTimer ? search() : pendingSearch);
     return;
   }
-  const value = new FormData($('goal-form')).get('task');
+  const value = selected();
   if (!value) {
     $('error').textContent = 'Write a goal or pick a task.';
     return;
@@ -107,6 +149,7 @@ const init = async () => {
   $('goal-hint').textContent = `${status.minutes} minutes on one ClickUp task. Pick one due today or describe your goal.`;
   $('goal-form').classList.remove('hidden');
   $('goal').addEventListener('input', onGoalInput);
+  $('tasks').addEventListener('change', updateStartLabel);
   $('goal-form').addEventListener('submit', (event) => {
     event.preventDefault();
     start();

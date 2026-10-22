@@ -372,6 +372,19 @@ const startPomodoro = (task) => {
   tick();
 };
 
+const createPomodoroTask = async (input) => {
+  const name = String(input ?? '').trim();
+  if (!name) return { ok: false, error: 'Pick a task or create a new one.' };
+  if (!config.clickupListId) return { ok: false, error: 'Set the ClickUp list for new tasks in Settings.' };
+  try {
+    const task = await clickupFor(config).createTask(name, new Date());
+    pomodoroMatches.set(task.id, task);
+    return { ok: true, task };
+  } catch {
+    return { ok: false, error: 'Could not create the ClickUp task. Try again.' };
+  }
+};
+
 const stopPomodoro = () => {
   if (focusing()) finishFocus(false);
   updateState({ pomodoro: null });
@@ -916,15 +929,15 @@ const registerIpc = () => {
       startPomodoro(picked);
       return { ok: true };
     }
-    const name = String(input.create ?? '').trim();
-    if (!name) return { ok: false, error: 'Pick a task or create a new one.' };
-    if (!config.clickupListId) return { ok: false, error: 'Set the ClickUp list for new tasks in Settings.' };
-    try {
-      startPomodoro(await clickupFor(config).createTask(name, new Date()));
-    } catch {
-      return { ok: false, error: 'Could not create the ClickUp task. Try again.' };
-    }
-    return { ok: true };
+    const created = await createPomodoroTask(input.create);
+    if (created.ok) startPomodoro(created.task);
+    return { ok: created.ok, error: created.error };
+  });
+
+  ipcMain.handle('pomodoro:create', async (event, name) => {
+    if (!isPomodoroSender(event) || !clickupReady()) return { ok: false, error: CLICKUP_SETUP_ERROR };
+    const created = await createPomodoroTask(name);
+    return created.ok ? { ok: true, task: clickup.toListItem(created.task, new Date()) } : created;
   });
 
   ipcMain.handle('settings:whatsapp-link', (event) => {

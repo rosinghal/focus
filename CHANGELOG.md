@@ -3,6 +3,17 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.1.0] - 2026-10-22
+
+### Added
+
+- Pomodoro: **Create** on the new-task tile adds the task to ClickUp without starting a pomodoro.
+
+### Changed
+
+- Pomodoro: typing a goal clears the previous results right away and shows the new-task tile while searching. The
+  main button reads **Start** for an existing task and **Create and start** for a new one.
+
 ## [1.0.0] - 2026-10-22
 
 First public release, macOS only.
