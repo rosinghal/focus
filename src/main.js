@@ -8,6 +8,7 @@ const {
   Menu,
   Notification,
   Tray,
+  globalShortcut,
   ipcMain,
   nativeImage,
   powerMonitor,
@@ -312,6 +313,14 @@ const openPomodoro = () => {
   app.focus({ steal: true });
 };
 
+const POMODORO_SHORTCUT = 'Alt+Command+P';
+
+const showPomodoro = () => {
+  if (lockWindows.length) return;
+  if (pomodoroActive()) showTimer();
+  else if (isConfigured(config) && !inSession()) openPomodoro();
+};
+
 const TIMER_WIDTH = 300;
 const TIMER_MARGIN = 12;
 
@@ -437,7 +446,15 @@ const shorten = (text, length = 40) => (text.length > length ? `${text.slice(0, 
 
 const pomodoroMenu = () => {
   if (!pomodoroActive()) {
-    return [{ label: 'Start Pomodoro…', enabled: isConfigured(config) && !inSession(), click: openPomodoro }];
+    return [
+      {
+        label: 'Start Pomodoro…',
+        enabled: isConfigured(config) && !inSession(),
+        accelerator: POMODORO_SHORTCUT,
+        registerAccelerator: false,
+        click: openPomodoro,
+      },
+    ];
   }
   const { phase, until, task } = state.pomodoro;
   return phase === 'focus'
@@ -1078,6 +1095,7 @@ const start = () => {
 
     registerIpc();
     createTray();
+    globalShortcut.register(POMODORO_SHORTCUT, showPomodoro);
 
     powerMonitor.on('resume', relockAfterWake);
     powerMonitor.on('unlock-screen', relockAfterWake);

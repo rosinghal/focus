@@ -121,8 +121,9 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   sites (`blockingSites`), and hitting it offers `KID_SESSION_MS` (31 min) where only that site, browsers and Focus
   are allowed (`sessionRules`). It works once per calendar day (`kidModeAvailable(now, state.kidUsedAt)`, recorded at
   start, so ending early still counts); otherwise `blocked.html?kind=used` shows. Kid mode needs no passcode.
-- **Pomodoro** (`state.pomodoro`: `phase`, `until`, `task`) starts from the tray's **Start Pomodoro…**, which opens
-  `renderer/pomodoro.html`. It opens on tasks due today or overdue
+- **Pomodoro** (`state.pomodoro`: `phase`, `until`, `task`) starts from the tray's **Start Pomodoro…** or the global
+  shortcut `POMODORO_SHORTCUT` (⌥⌘P, `showPomodoro`: shows the timer while a pomodoro is active, does nothing while
+  locked), which opens `renderer/pomodoro.html`. It opens on tasks due today or overdue
   (`searchTasks` with no searchable words fetches with `dueFilter`, then `dueTasks`); every listed task carries a
   relative due label (`toListItem`). Otherwise a goal is required: as it is typed, `pomodoro:search` (debounced 400 ms in the renderer) lists
   ClickUp tasks assigned to the token's user (done and closed ones dropped by `isOpenTask`) in `config.clickupTeamId` that share a word with it; `createClient` reuses the assigned-task

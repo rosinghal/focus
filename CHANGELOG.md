@@ -3,6 +3,12 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.4.0] - 2026-10-22
+
+### Added
+
+- **⌥⌘P** opens Pomodoro from anywhere: the task picker, or the timer while a pomodoro or break is running.
+
 ## [1.3.0] - 2026-10-22
 
 ### Added
