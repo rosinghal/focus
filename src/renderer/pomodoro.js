@@ -34,6 +34,21 @@ const option = (value, title, detail, checked, action) => {
   return label;
 };
 
+const NO_PRIORITY = 5;
+const byPriority = (a, b) => (a.priority ?? NO_PRIORITY) - (b.priority ?? NO_PRIORITY);
+
+const starButton = (task) => {
+  const button = Object.assign(document.createElement('button'), {
+    type: 'button',
+    className: task.starred ? 'star starred' : 'star',
+    textContent: task.starred ? '★\uFE0E' : '☆\uFE0E',
+    title: task.starred ? 'Remove high priority' : 'Mark high priority',
+  });
+  button.setAttribute('aria-pressed', String(task.starred));
+  button.addEventListener('click', () => toggleStar(button, task));
+  return button;
+};
+
 const createButton = () => {
   const button = Object.assign(document.createElement('button'), { type: 'button', className: 'create', textContent: 'Create' });
   button.addEventListener('click', createOnly);
@@ -58,7 +73,7 @@ const renderTasks = (tasks, preferred = selected()) => {
   const fallback = tasks[0]?.id ?? (offerNew ? NEW_TASK : null);
   const keep = tasks.some((task) => task.id === preferred) || (offerNew && preferred === NEW_TASK) ? preferred : fallback;
   $('tasks').replaceChildren(
-    ...tasks.map((task) => option(task.id, task.name, details(task), task.id === keep)),
+    ...tasks.map((task) => option(task.id, task.name, details(task), task.id === keep, starButton(task))),
     ...(offerNew ? [option(NEW_TASK, `“${goal}”`, span('muted', 'New task, due today'), keep === NEW_TASK, createButton())] : []),
   );
   updateStartLabel();
@@ -120,6 +135,19 @@ const createOnly = async (event) => {
   shownTasks = [result.task, ...shownTasks];
   renderTasks(shownTasks, result.task.id);
   $('search-status').textContent = 'Task created in ClickUp';
+};
+
+const toggleStar = async (button, task) => {
+  button.disabled = true;
+  $('error').textContent = '';
+  const result = await window.focusLock.starTask(task.id, !task.starred);
+  button.disabled = false;
+  if (!result.ok) {
+    $('error').textContent = result.error;
+    return;
+  }
+  shownTasks = shownTasks.map((shown) => (shown.id === result.task.id ? result.task : shown)).sort(byPriority);
+  renderTasks(shownTasks);
 };
 
 const start = async () => {

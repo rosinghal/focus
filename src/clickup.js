@@ -6,6 +6,10 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 10000;
 const TASKS_TTL_MS = 60 * 1000;
 
+// ClickUp priority ids: 1 urgent, 2 high, 3 normal, 4 low. A star means urgent or high.
+const HIGH_PRIORITY = 2;
+const NO_PRIORITY = 5;
+
 const STOP_WORDS = ['the', 'and', 'for', 'with', 'from', 'into', 'about'];
 
 const isValidToken = (token) => /^pk_[A-Za-z0-9_]+$/.test(token);
@@ -47,6 +51,7 @@ const toTask = (raw) => ({
   list: raw.list?.name ?? '',
   status: raw.status?.status ?? '',
   due: raw.due_date ? Number(raw.due_date) : null,
+  priority: Number(raw.priority?.id) || null,
 });
 
 const startOfDay = (date, offsetDays = 0) =>
@@ -54,11 +59,16 @@ const startOfDay = (date, offsetDays = 0) =>
 
 const byDue = (a, b) => (a.due ?? Infinity) - (b.due ?? Infinity);
 
+const isStarred = (task) => (task.priority ?? NO_PRIORITY) <= HIGH_PRIORITY;
+
+const byPriority = (a, b) => (a.priority ?? NO_PRIORITY) - (b.priority ?? NO_PRIORITY);
+
 const dueTasks = (tasks, now) =>
   tasks
     .filter((task) => task.due !== null && task.due < startOfDay(now, 1))
     .sort(byDue)
-    .slice(0, MAX_DUE);
+    .slice(0, MAX_DUE)
+    .sort(byPriority);
 
 const RELATIVE = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
 
@@ -70,13 +80,15 @@ const relativeDue = (due, now) => {
   return `Due ${RELATIVE.format(Math.round(days / 30), 'month')}`;
 };
 
-const toListItem = ({ id, name, list, status, due }, now) => ({
+const toListItem = ({ id, name, list, status, due, priority }, now) => ({
   id,
   name,
   list,
   status,
   dueLabel: due === null ? '' : relativeDue(due, now),
   overdue: due !== null && due < startOfDay(now),
+  priority: priority ?? null,
+  starred: isStarred({ priority }),
 });
 
 const matchTasks = (query, tasks) => {
@@ -89,7 +101,8 @@ const matchTasks = (query, tasks) => {
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score || byDue(a.task, b.task))
     .slice(0, MAX_MATCHES)
-    .map(({ task }) => task);
+    .map(({ task }) => task)
+    .sort(byPriority);
 };
 
 const assignedTasksPath = (teamId, userId, page, filter = 'order_by=updated') =>
@@ -157,6 +170,13 @@ const createClient = ({ token, teamId, listId }, fetchImpl = fetch, clock = Date
       cache.clear();
       return task;
     },
+    setStarred: async (taskId, starred) => {
+      // null clears the priority, so unstarring an urgent task leaves it with none.
+      const priority = starred ? HIGH_PRIORITY : null;
+      await request(`/task/${encodeURIComponent(taskId)}`, { method: 'PUT', body: JSON.stringify({ priority }) });
+      cache.clear();
+      return priority;
+    },
     completeTask: async (taskId) => {
       const task = await request(`/task/${encodeURIComponent(taskId)}`);
       const status = closingStatus((await request(`/list/${encodeURIComponent(task.list?.id)}`)).statuses);
@@ -174,6 +194,8 @@ module.exports = {
   isValidToken,
   isOpenTask,
   closingStatus,
+  isStarred,
+  byPriority,
   parseTeamId,
   parseListId,
   words,

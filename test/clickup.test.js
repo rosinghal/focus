@@ -7,6 +7,7 @@ const {
   isValidToken,
   isOpenTask,
   closingStatus,
+  isStarred,
   parseTeamId,
   parseListId,
   words,
@@ -21,7 +22,15 @@ const {
   createClient,
 } = require('../src/clickup');
 
-const task = (id, name, due = null) => ({ id, name, url: `https://app.clickup.com/t/${id}`, list: 'Inbox', status: 'to do', due });
+const task = (id, name, due = null, priority = null) => ({
+  id,
+  name,
+  url: `https://app.clickup.com/t/${id}`,
+  list: 'Inbox',
+  status: 'to do',
+  due,
+  priority,
+});
 
 const ids = { token: 'pk_token', teamId: '111', listId: '222' };
 const now = new Date(2026, 9, 21, 17, 30);
@@ -75,6 +84,26 @@ test('matchTasks breaks ties by due date', () => {
   assert.deepEqual(matchTasks('login', tasks).map(({ id }) => id), ['3', '1', '2']);
 });
 
+test('matchTasks shows high priority first among the best matches', () => {
+  const tasks = [
+    task('1', 'Fix login bug'),
+    task('2', 'Login page', null, 4),
+    task('3', 'Login copy', null, 2),
+    ...Array.from({ length: 5 }, (_, i) => task(`u${i}`, 'Login urgent', null, 1)),
+  ];
+  assert.deepEqual(matchTasks('fix login bug', tasks.slice(0, 3)).map(({ id }) => id), ['3', '2', '1']);
+  assert.ok(matchTasks('fix login bug', tasks).some(({ id }) => id === '1'));
+});
+
+test('dueTasks sorts by priority after keeping the earliest due', () => {
+  const tasks = [task('a', 'A', day(-3)), task('b', 'B', day(0), 1), task('c', 'C', day(-1), 3)];
+  assert.deepEqual(dueTasks(tasks, now).map(({ id }) => id), ['b', 'c', 'a']);
+});
+
+test('isStarred means urgent or high priority', () => {
+  assert.deepEqual([1, 2, 3, 4, null, undefined].map((priority) => isStarred({ priority })), [true, true, false, false, false, false]);
+});
+
 test('dueTasks keeps overdue and today, earliest first', () => {
   const tasks = [
     task('today', 'A', day(0, 23)),
@@ -106,7 +135,10 @@ test('toListItem adds the due label and flags overdue tasks only', () => {
     status: 'to do',
     dueLabel: 'Due 2 days ago',
     overdue: true,
+    priority: null,
+    starred: false,
   });
+  assert.equal(toListItem(task('1', 'A', null, 2), now).starred, true);
   assert.equal(toListItem(task('1', 'A', day(0, 9)), now).overdue, false);
   assert.deepEqual([toListItem(task('1', 'A'), now).dueLabel, toListItem(task('1', 'A'), now).overdue], ['', false]);
 });
@@ -152,8 +184,8 @@ test('searchTasks looks up me once and pages through my tasks', async () => {
   const client = createClient(ids, fetchImpl);
   const found = await client.searchTasks('login');
   assert.deepEqual(found, [
-    { id: '1', name: 'Fix login bug', url: 'u1', list: 'Web', status: '', due: null },
-    { id: '2', name: 'Login copy', url: 'u2', list: '', status: '', due: null },
+    { id: '1', name: 'Fix login bug', url: 'u1', list: 'Web', status: '', due: null, priority: null },
+    { id: '2', name: 'Login copy', url: 'u2', list: '', status: '', due: null, priority: null },
   ]);
   await client.searchTasks('login');
   assert.equal(calls.filter(({ url }) => url.endsWith('/user')).length, 1);
@@ -215,6 +247,23 @@ test('createTask posts to the pomodoro list', async () => {
   const post = calls.find(({ options }) => options.method === 'POST');
   assert.ok(post.url.endsWith('/list/222/task'));
   assert.deepEqual(JSON.parse(post.options.body).assignees, [7]);
+});
+
+test('toTask reads the priority id', async () => {
+  const { fetchImpl } = fakeFetch([
+    [/\/user$/, () => ({ user: { id: 7 } })],
+    [/\/team\//, () => ({ tasks: [{ id: 'a', name: 'Report', priority: { id: '2', priority: 'high' } }, { id: 'b', name: 'Report', priority: null }] })],
+  ]);
+  const found = await createClient(ids, fetchImpl).searchTasks('report');
+  assert.deepEqual(found.map(({ id, priority }) => [id, priority]), [['a', 2], ['b', null]]);
+});
+
+test('setStarred sets high priority or clears it', async () => {
+  const { calls, fetchImpl } = fakeFetch([[/\/task\/abc$/, () => ({})]]);
+  const client = createClient(ids, fetchImpl);
+  assert.equal(await client.setStarred('abc', true), 2);
+  assert.equal(await client.setStarred('abc', false), null);
+  assert.deepEqual(calls.map(({ options }) => [options.method, JSON.parse(options.body)]), [['PUT', { priority: 2 }], ['PUT', { priority: null }]]);
 });
 
 test('closingStatus prefers the closed status, then a done one', () => {

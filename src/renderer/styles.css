@@ -173,6 +173,8 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .task > span { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
 .task small { font-size: 12px; }
 .task .create { align-self: center; padding: 4px 10px; font-size: 12px; }
+.task .star { align-self: center; padding: 0 4px; border: none; background: none; color: var(--muted); font-size: 18px; line-height: 1; }
+.task .star.starred { color: var(--warn); }
 .task .due { color: var(--muted); }
 .task .due.overdue { color: var(--danger); }
 .pomodoro .moon { font-size: 36px; }

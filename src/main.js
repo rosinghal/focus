@@ -934,6 +934,19 @@ const registerIpc = () => {
     return { ok: created.ok, error: created.error };
   });
 
+  ipcMain.handle('pomodoro:star', async (event, taskId, starred) => {
+    if (!isPomodoroSender(event) || !clickupReady()) return { ok: false, error: CLICKUP_SETUP_ERROR };
+    const task = pomodoroMatches.get(taskId);
+    if (!task) return { ok: false, error: 'Pick a task from the list.' };
+    try {
+      const priority = await clickupFor(config).setStarred(task.id, Boolean(starred));
+      pomodoroMatches.set(task.id, { ...task, priority });
+      return { ok: true, task: clickup.toListItem({ ...task, priority }, new Date()) };
+    } catch {
+      return { ok: false, error: 'Could not change the priority in ClickUp. Try again.' };
+    }
+  });
+
   ipcMain.handle('pomodoro:create', async (event, name) => {
     if (!isPomodoroSender(event) || !clickupReady()) return { ok: false, error: CLICKUP_SETUP_ERROR };
     const created = await createPomodoroTask(name);
