@@ -33,6 +33,7 @@ const createStore = (dir) => {
       pomodoro: null,
       pomodoroSummary: null,
       pomodoroLog: [],
+      sessionLog: [],
       ...readJson(stateFile),
     }),
     saveState: (state) => writeJson(stateFile, state),

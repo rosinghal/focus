@@ -17,6 +17,15 @@ document.getElementById('start').textContent = kid ? 'Start Kid mode' : 'Start E
 document.getElementById('notice-title').textContent = kid ? 'Kid mode' : 'Entertainment mode';
 document.getElementById('notice-text').textContent = noticeText;
 
+if (!kid && params.has('todaySessions')) {
+  const sessions = Number(params.get('todaySessions'));
+  const plural = sessions === 1 ? 'session' : 'sessions';
+  document.querySelectorAll('.stats').forEach((el) => {
+    el.textContent = `Today: ${sessions} ${plural}, ${params.get('todayMinutes')} min`;
+    el.classList.remove('hidden');
+  });
+}
+
 document.getElementById('not-now').addEventListener('click', () => window.close());
 document.querySelectorAll('.close').forEach((button) => button.addEventListener('click', () => window.close()));
 document.getElementById('start').addEventListener('click', async () => {

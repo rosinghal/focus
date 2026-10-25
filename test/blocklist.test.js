@@ -17,6 +17,9 @@ const {
   isSessionActive,
   kidModeAvailable,
   sessionMinutesLeft,
+  logSession,
+  endSessionLog,
+  sessionStats,
   runningApps,
   blockedProcesses,
   runningBrowsers,
@@ -278,3 +281,19 @@ test('unhideAppsScript unhides only the named apps that are still hidden', () =>
   assert.deepEqual(apps.map((a) => a.hidden), [false, true, false]);
 });
 
+
+test('session log keeps today, trims early ends and sums minutes used', () => {
+  const at = (day, hour, minute = 0) => new Date(2026, 9, day, hour, minute).getTime();
+  const yesterday = logSession([], at(24, 21), at(24, 21, 25));
+  const log = logSession(yesterday, at(25, 10), at(25, 10, 25));
+  assert.deepEqual(log, [{ start: at(25, 10), end: at(25, 10, 25) }]);
+
+  const ended = endSessionLog(log, at(25, 10, 10));
+  assert.deepEqual(ended, [{ start: at(25, 10), end: at(25, 10, 10) }]);
+  assert.deepEqual(endSessionLog(log, at(25, 11)), log);
+
+  const withActive = logSession(ended, at(25, 12), at(25, 12, 25));
+  assert.deepEqual(sessionStats(withActive, at(25, 12, 5)), { sessions: 2, minutes: 15 });
+  assert.deepEqual(sessionStats(withActive, at(26, 9)), { sessions: 0, minutes: 0 });
+  assert.deepEqual(sessionStats([], at(25, 9)), { sessions: 0, minutes: 0 });
+});

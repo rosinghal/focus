@@ -123,6 +123,19 @@ const kidModeAvailable = (now, kidUsedAt) => !kidUsedAt || new Date(kidUsedAt).t
 
 const sessionMinutesLeft = (now, sessionUntil) => Math.max(0, Math.ceil((sessionUntil - now) / 60000));
 
+const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
+
+const logSession = (log, start, end) => [...log.filter((entry) => sameDay(entry.start, start)), { start, end }];
+
+const endSessionLog = (log, now) =>
+  log.map((entry, i) => (i === log.length - 1 ? { ...entry, end: Math.min(entry.end, now) } : entry));
+
+const sessionStats = (log, now) => {
+  const today = log.filter((entry) => sameDay(entry.start, now));
+  const usedMs = today.reduce((sum, entry) => sum + Math.max(0, Math.min(entry.end, now) - entry.start), 0);
+  return { sessions: today.length, minutes: Math.round(usedMs / 60000) };
+};
+
 const runningApps = (psOutput) =>
   psOutput
     .split('\n')
@@ -247,6 +260,9 @@ module.exports = {
   isSessionActive,
   kidModeAvailable,
   sessionMinutesLeft,
+  logSession,
+  endSessionLog,
+  sessionStats,
   runningApps,
   blockedProcesses,
   runningBrowsers,

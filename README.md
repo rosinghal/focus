@@ -35,7 +35,8 @@ List entertainment websites and apps in Settings and they're blocked at all time
 subdomains) switch to a "blocked" page in Safari, Chrome, Brave, Edge, Arc, Vivaldi and Chromium, and blocked apps are
 quit as soon as they start. When you hit one, Focus offers 25 minutes of Entertainment mode: only your entertainment
 sites and apps work, other pages switch to an "Entertainment mode" page and other apps are hidden. When it ends, tabs
-go back to their pages and hidden apps reappear.
+go back to their pages and hidden apps reappear. The offer and in-session notice show today's Entertainment mode
+sessions and minutes used.
 
 <br clear="right" />
 

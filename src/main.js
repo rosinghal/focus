@@ -66,6 +66,7 @@ let state = {
   pomodoro: null,
   pomodoroSummary: null,
   pomodoroLog: [],
+  sessionLog: [],
 };
 let history = [];
 let attempts = unlock.NO_FAILURES;
@@ -537,7 +538,7 @@ const showBlockedWindow = (query) => {
   blockedWindow?.destroy();
   blockedWindow = new BrowserWindow({
     width: 420,
-    height: 300,
+    height: 330,
     title: 'Focus',
     resizable: false,
     minimizable: false,
@@ -552,10 +553,21 @@ const showBlockedWindow = (query) => {
   app.focus({ steal: true });
 };
 
+const sessionStatsQuery = () => {
+  const { sessions, minutes } = blocklist.sessionStats(state.sessionLog, Date.now());
+  return { todaySessions: String(sessions), todayMinutes: String(minutes) };
+};
+
 const offerSession = (name, appPath = null) => {
   if (name !== blocklist.KID_SITE) {
     sessionOffer = { kind: 'session', appPath };
-    showBlockedWindow({ kind: 'offer', mode: 'session', name, minutes: String(blocklist.SESSION_MS / 60000) });
+    showBlockedWindow({
+      kind: 'offer',
+      mode: 'session',
+      name,
+      minutes: String(blocklist.SESSION_MS / 60000),
+      ...sessionStatsQuery(),
+    });
   } else if (blocklist.kidModeAvailable(new Date(), state.kidUsedAt)) {
     sessionOffer = { kind: 'kid', appPath };
     showBlockedWindow({ kind: 'offer', mode: 'kid', name, minutes: String(blocklist.KID_SESSION_MS / 60000) });
@@ -572,7 +584,9 @@ const startSession = () => {
   updateState({
     sessionUntil: now + durationMs,
     sessionKind: kind,
-    ...(kind === 'kid' ? { kidUsedAt: now } : {}),
+    ...(kind === 'kid'
+      ? { kidUsedAt: now }
+      : { sessionLog: blocklist.logSession(state.sessionLog, now, now + durationMs) }),
   });
   if (appPath) run('open', [appPath]).catch(() => {});
   sessionOffer = null;
@@ -581,7 +595,7 @@ const startSession = () => {
 
 const endSession = () => {
   const kid = isKidSession();
-  updateState({ sessionUntil: 0 });
+  updateState({ sessionUntil: 0, ...(kid ? {} : { sessionLog: blocklist.endSessionLog(state.sessionLog, Date.now()) }) });
   offersPaused = true;
   notify(kid ? 'Kid mode is over for today.' : 'Entertainment mode is over. Your entertainment sites and apps are blocked again.');
   tick();
@@ -602,7 +616,12 @@ const hideOtherApps = async () => {
   if (!hidden.length) return;
   updateState({ hiddenApps: [...new Set([...state.hiddenApps, ...hidden])] });
   const minutes = blocklist.sessionMinutesLeft(Date.now(), state.sessionUntil);
-  showBlockedWindow({ kind: 'notice', mode: state.sessionKind, minutes: String(minutes) });
+  showBlockedWindow({
+    kind: 'notice',
+    mode: state.sessionKind,
+    minutes: String(minutes),
+    ...(isKidSession() ? {} : sessionStatsQuery()),
+  });
 };
 
 // Each browser asks once for Automation permission; until it is granted the script fails and is skipped.

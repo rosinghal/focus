@@ -117,6 +117,8 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   (`unhideAppsScript`). Hiding shows `blocked.html?kind=session`. App activation triggers
   enforcement immediately during a session. **End Entertainment Mode** in the tray ends it early. While a mode or a sleep-hours unlock is active the tray
   title shows the time left until whichever ends first (`countdownEnd`), refreshed every second by `updateTrayTitle`. No limit on sessions.
+  Entertainment sessions are logged in `state.sessionLog` (today only, `logSession`; ending early trims the last entry,
+  `endSessionLog`), and the offer and notice windows show today's count and minutes (`sessionStats`). Kid mode isn't logged.
 - **Kid mode** is a session kind (`state.sessionKind: 'kid'`): `KID_SITE` (stick.cafe) is always added to the blocked
   sites (`blockingSites`), and hitting it offers `KID_SESSION_MS` (31 min) where only that site, browsers and Focus
   are allowed (`sessionRules`). It works once per calendar day (`kidModeAvailable(now, state.kidUsedAt)`, recorded at
