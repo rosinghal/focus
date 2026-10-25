@@ -26,7 +26,7 @@ const render = (next) => {
   $('mode').textContent = view.mode;
   $('time').classList.toggle('hidden', !view.until);
   showTime();
-  $('task').textContent = view.task?.name ?? '';
+  $('task').replaceChildren(...titleNodes(view.task?.name ?? ''));
   const { summary } = view;
   $('summary').classList.toggle('hidden', !summary);
   if (!summary) return;

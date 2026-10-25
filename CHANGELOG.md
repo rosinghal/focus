@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.7.1] - 2026-10-25
+
+### Changed
+
+- Pomodoro picker and timer: links in a ClickUp task name show as just the domain with a dotted underline; hover for
+  the full URL.
+
 ## [1.7.0] - 2026-10-25
 
 ### Added

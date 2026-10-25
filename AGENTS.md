@@ -56,7 +56,7 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
 | `src/store.js` | JSON persistence in `userData` (`config.json`, `state.json`, `history.json`). |
 | `src/icon.js` | Tray icon drawn as a BGRA bitmap (no image assets). |
 | `src/preload.js` | `window.focusLock` bridge exposed to renderers. |
-| `src/renderer/` | `lock.*` (lock screen + keypad), `settings.*`, `blocked.*` (session offer and in-session notice), `pomodoro.*` (goal and task picker), `timer.*` (top-right pomodoro timer and summary), `reminder.*` (meeting reminder), `quit.*` (passcode to quit), `escape.js` (Esc closes the window unless a `<dialog>` is open; not used on the lock screen), shared `styles.css`. |
+| `src/renderer/` | `lock.*` (lock screen + keypad), `settings.*`, `blocked.*` (session offer and in-session notice), `pomodoro.*` (goal and task picker), `timer.*` (top-right pomodoro timer and summary), `reminder.*` (meeting reminder), `quit.*` (passcode to quit), `escape.js` (Esc closes the window unless a `<dialog>` is open; not used on the lock screen), `links.js` (`titleNodes`: URLs in task names shown as their domain, dotted underline, full URL as tooltip; used by pomodoro and timer, tested via `vm`), shared `styles.css`. |
 | `scripts/install-local.sh` | Build and install/replace `/Applications/Focus.app`, then relaunch it. |
 | `test/` | Unit tests for the pure modules. |
 | `docs/screenshots/` | README screenshots, rendered from the real renderers with fake data (never from a personal setup). |

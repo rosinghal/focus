@@ -196,6 +196,8 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .timer-close:hover { background: var(--border); color: var(--text); }
 .timer-mode { padding-right: 32px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
 .timer-time { font-size: 34px; font-weight: 300; font-variant-numeric: tabular-nums; }
+.title-link { text-decoration: underline dotted; text-underline-offset: 3px; }
+.timer-task:has(.title-link) { text-decoration: none; padding-bottom: 4px; }
 .timer-task { display: block; margin-top: 2px; color: var(--accent); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-app-region: no-drag; }
 .timer-summary { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; }
 .timer-summary p + p { margin-top: 4px; }

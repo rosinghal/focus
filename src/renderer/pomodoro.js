@@ -46,7 +46,8 @@ const option = (value, title, detail, checked, action, link) => {
   label.className = 'task';
   const radio = Object.assign(document.createElement('input'), { type: 'radio', name: 'task', value, checked });
   const text = document.createElement('span');
-  const strong = Object.assign(document.createElement('strong'), { textContent: title });
+  const strong = document.createElement('strong');
+  strong.append(...titleNodes(title));
   if (link) strong.append(link);
   text.append(strong, detail);
   label.append(radio, text, ...(action ? [action] : []));
