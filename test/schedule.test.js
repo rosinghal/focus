@@ -10,6 +10,8 @@ const {
   scheduleLoosened,
   countdownEnd,
   formatCountdown,
+  lastBlockEnd,
+  isMorningPromptDue,
 } = require('../src/schedule');
 
 const at = (hhmm) => {
@@ -118,4 +120,20 @@ test('countdownEnd picks the unlock or mode that ends first', () => {
   assert.equal(countdownEnd({ now, schedule: night, bypassUntil: 0, sessionUntil: 0, pomodoroUntil: minutes(-1) }), null);
   const day = new Date(2026, 9, 20, 12, 0);
   assert.equal(countdownEnd({ now: day, schedule: night, bypassUntil: day.getTime() + 60000, sessionUntil: 0 }), null);
+});
+
+test('the last block end is this morning, or yesterday morning before the window ends', () => {
+  assert.equal(lastBlockEnd(at('09:00'), overnight), at('08:00').getTime());
+  assert.equal(lastBlockEnd(at('07:00'), overnight), at('08:00').getTime() - 24 * 60 * 60 * 1000);
+  assert.equal(lastBlockEnd(at('09:00'), { start: '08:00', end: '08:00' }), null);
+});
+
+test('the morning prompt is due once, the first time the user is active after sleep hours', () => {
+  const due = (now, promptedAt, idleSeconds = 0) => isMorningPromptDue({ now, schedule: overnight, promptedAt, idleSeconds });
+  const lastNight = at('07:00').getTime();
+  assert.equal(due(at('09:30'), lastNight), true);
+  assert.equal(due(at('09:30'), lastNight, 600), false);
+  assert.equal(due(at('09:30'), at('08:05').getTime()), false);
+  assert.equal(due(at('07:30'), lastNight - 24 * 60 * 60 * 1000), false);
+  assert.equal(due(at('21:00'), lastNight), false);
 });

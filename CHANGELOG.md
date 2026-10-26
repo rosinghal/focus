@@ -3,6 +3,12 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.9.0] - 2026-10-26
+
+### Added
+
+- The pomodoro window opens the first time you use the Mac after sleep hours end, to start the day with a pomodoro.
+
 ## [1.8.0] - 2026-10-26
 
 ### Added

@@ -38,6 +38,22 @@ const blockPeriodStart = (date, schedule) => {
   return start.getTime();
 };
 
+const lastBlockEnd = (date, schedule) => {
+  if (schedule.start === schedule.end) return null;
+  const [hours, minutes] = schedule.end.split(':').map(Number);
+  const end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes);
+  if (end > date) end.setDate(end.getDate() - 1);
+  return end.getTime();
+};
+
+const ACTIVE_IDLE_SECONDS = 30;
+
+// The first time the user is active after sleep hours end, once per morning.
+const isMorningPromptDue = ({ now, schedule, promptedAt, idleSeconds }) => {
+  const end = lastBlockEnd(now, schedule);
+  return end !== null && !isInBlockWindow(now, schedule) && promptedAt < end && idleSeconds < ACTIVE_IDLE_SECONDS;
+};
+
 // Like Screen Time, "One More Minute" can be used once per focus period.
 const isGraceAvailable = ({ now, schedule, graceUsedAt }) => {
   const periodStart = blockPeriodStart(now, schedule);
@@ -73,6 +89,8 @@ module.exports = {
   shouldLock,
   blockPeriodStart,
   isGraceAvailable,
+  lastBlockEnd,
+  isMorningPromptDue,
   formatTime,
   countdownEnd,
   formatCountdown,

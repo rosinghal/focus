@@ -21,6 +21,7 @@ const {
   isBypassActive,
   isGraceAvailable,
   shouldLock,
+  isMorningPromptDue,
   formatTime,
   countdownEnd,
   formatCountdown,
@@ -67,6 +68,7 @@ let state = {
   pomodoroSummary: null,
   pomodoroLog: [],
   sessionLog: [],
+  morningPromptedAt: 0,
 };
 let history = [];
 let attempts = unlock.NO_FAILURES;
@@ -421,6 +423,19 @@ const advancePomodoro = () => {
   }
 };
 
+const promptMorningPomodoro = (now) => {
+  if (!isConfigured(config) || lockWindows.length || inSession()) return;
+  const due = isMorningPromptDue({
+    now,
+    schedule: config.schedule,
+    promptedAt: state.morningPromptedAt,
+    idleSeconds: powerMonitor.getSystemIdleTime(),
+  });
+  if (!due) return;
+  updateState({ morningPromptedAt: now.getTime() });
+  if (!pomodoroActive()) openPomodoro();
+};
+
 const openTask = () => {
   const url = (state.pomodoro ?? state.pomodoroSummary)?.task.url;
   if (/^https:\/\//.test(url ?? '')) shell.openExternal(url);
@@ -765,6 +780,7 @@ const tick = () => {
   updateTray(now);
   updateTrayTitle();
   enforceBlocklist();
+  promptMorningPomodoro(now);
 };
 
 const createTray = () => {
@@ -1137,6 +1153,7 @@ const start = () => {
     state = store.loadState();
     history = store.loadHistory();
     if (isConfigured(config) && !state.trackingSince) updateState({ trackingSince: Date.now() });
+    if (!state.morningPromptedAt) updateState({ morningPromptedAt: Date.now() });
 
     whatsappClient = whatsapp.createClient({
       authDir: whatsappAuthDir(),
