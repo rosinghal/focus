@@ -415,7 +415,10 @@ const advancePomodoro = () => {
   updateState({ pomodoro: next });
   updateTimer();
   if (ended === 'focus') notify(`Pomodoro done: ${state.pomodoro.task.name}. Take a ${pomodoro.BREAK_MS / 60000}-minute break.`);
-  else notify('Break is over. Start another pomodoro when you are ready.');
+  else {
+    notify('Break is over. Start another pomodoro when you are ready.');
+    showPomodoro();
+  }
 };
 
 const openTask = () => {

@@ -54,8 +54,8 @@ searches the tasks assigned to you as you type and offers a new one (assigned to
 it to ClickUp, **Create and start** also starts the pomodoro. The star on a task sets or clears its high priority in
 ClickUp, and tasks are listed by priority. **+1** after a due date moves the task to tomorrow, and **↗** opens it in
 the browser. `#hashtags` in a new task's goal become ClickUp tags (`Write notes #docs`). Links in
-task names show as their domain with a dotted underline (hover for the full URL). You get 25 minutes of focus, then a 5-minute break. A
-small always-on-top window shows the time left and, when it ends, a summary with **Mark task complete**.
+task names show as their domain with a dotted underline (hover for the full URL). You get 25 minutes of focus, then a 5-minute break; when the break
+ends, the pomodoro window opens again so you can start the next one. A small always-on-top window shows the time left and, when it ends, a summary with **Mark task complete**.
 
 <img src="docs/screenshots/timer.png" alt="Pomodoro timer" width="300" />
 <img src="docs/screenshots/timer-summary.png" alt="Pomodoro summary" width="300" />

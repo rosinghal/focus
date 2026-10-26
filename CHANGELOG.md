@@ -3,6 +3,12 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.8.0] - 2026-10-26
+
+### Added
+
+- The pomodoro window opens on its own when a break runs out, so the next pomodoro is one click away.
+
 ## [1.7.1] - 2026-10-25
 
 ### Changed
