@@ -4,6 +4,7 @@ const {
   normalizeSite,
   normalizeApp,
   parseBlocklist,
+  isSignInUrl,
   blockedSite,
   blockedPageUrl,
   PAGE_STYLE,
@@ -73,6 +74,17 @@ test('blockedSite returns the matching domain for the domain and its subdomains 
   assert.equal(blockedSite('https://youtube.com@evil.com/', sites), null);
   assert.equal(blockedSite('about:blank', sites), null);
   assert.equal(blockedSite(null, sites), null);
+});
+
+test('blockedSite lets sign-in hops through blocked sites', () => {
+  const sites = ['youtube.com'];
+  assert.equal(blockedSite('https://accounts.youtube.com/accounts/SetSID?ssdc=1', sites), null);
+  assert.equal(blockedSite('https://www.youtube.com/signin?action_handle_signin=true&next=%2F', sites), null);
+  assert.equal(blockedSite('https://youtube.com/signin', sites), null);
+  assert.equal(blockedSite('https://youtube.com/signinfoo', sites), 'youtube.com');
+  assert.equal(blockedSite('https://youtube.com/watch?v=signin', sites), 'youtube.com');
+  assert.equal(blockedSite('https://m.youtube.com/', sites), 'youtube.com');
+  assert.equal(isSignInUrl('https://evil.com/?r=accounts.youtube.com'), false);
 });
 
 test('blockedPageUrl is a data page naming the site, linking back, and never blocked itself', () => {
@@ -180,13 +192,16 @@ test('enforceTabsScript offers Kid mode on the kid site', () => {
 test('enforceTabsScript in a session keeps allowed sites and replaces other web pages', () => {
   const { page } = sessionRules('session', { blockedSites: ['youtube.com'], blockedApps: [] });
   const { hits, urls } = runTabsScript(
-    [['https://youtube.com/a', 'https://example.com/', 'chrome://newtab/'], ['https://x.com/']],
+    [['https://youtube.com/a', 'https://example.com/', 'chrome://newtab/'], ['https://x.com/', 'https://accounts.google.com/']],
     ['youtube.com'],
     page,
   );
   const away = (url) => sessionPageUrl(page.title, page.text, PAGE_STYLE, url);
   assert.deepEqual(hits, []);
-  assert.deepEqual(urls, [['https://youtube.com/a', away('https://example.com/'), 'chrome://newtab/'], [away('https://x.com/')]]);
+  assert.deepEqual(urls, [
+    ['https://youtube.com/a', away('https://example.com/'), 'chrome://newtab/'],
+    [away('https://x.com/'), 'https://accounts.google.com/'],
+  ]);
 });
 
 test('sessionReturnUrl recovers the original URL from a session page only', () => {

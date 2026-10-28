@@ -105,7 +105,8 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   as internal names so saved settings still load) and their session (`sessionKind: 'session'`). They apply at all times once configured (macOS only).
   The tick loop lists apps with `ps`, SIGTERMs blocked ones, and runs `enforceTabsScript` via `osascript -l JavaScript`
   only for browsers already running (`tell`-ing a closed browser would launch it). The script points blocked tabs at
-  a `data:` page (`blockedPageUrl`, linking back to the original URL). `blockedSite` and `blockedPageUrl` must stay
+  a `data:` page (`blockedPageUrl`, linking back to the original URL). Sign-in hops (`isSignInUrl`: `accounts.*` hosts, `/signin` paths, used by Google login
+  through YouTube) are never blocked or sent to the session page. `isSignInUrl`, `blockedSite` and `blockedPageUrl` must stay
   self-contained because they are serialised into that script. Focus, Finder and other system apps can't be blocked.
 - Hitting a blocked site or app opens `renderer/blocked.html?kind=offer`, offering 25 minutes of Entertainment mode
   (`SESSION_MS`, `blocked:start-session`, `state.sessionUntil`). During a session blocked apps aren't quit (the

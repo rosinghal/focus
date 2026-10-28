@@ -61,9 +61,15 @@ const parseBlocklist = ({ blockedSites, blockedApps }) => {
 };
 
 // Kept self-contained: it is also serialised into the browser automation script.
+// Google sign-in hops through YouTube (accounts.youtube.com, youtube.com/signin) to set its cookies.
+function isSignInUrl(url) {
+  return /^https?:\/\/(?:[^@/?#]*@)?(?:accounts\.[^/?#]*|[^/?#]+\/signin(?:[/?#]|$))/i.test(url || '');
+}
+
+// Kept self-contained (apart from isSignInUrl): it is also serialised into the browser automation script.
 function blockedSite(url, sites) {
   const match = /^https?:\/\/(?:[^@/?#]*@)?([^/:?#]+)/i.exec(url || '');
-  if (!match) return null;
+  if (!match || isSignInUrl(url)) return null;
   const host = match[1].toLowerCase().replace(/\.$/, '');
   return sites.find((site) => host === site || host.endsWith('.' + site)) ?? null;
 }
@@ -177,6 +183,7 @@ const sessionRules = (kind, { blockedSites, blockedApps }) =>
 // the script returns the sites it hit. With one, it does the reverse: every web page outside `sites` goes to the
 // session page.
 const enforceTabsScript = (browser, sites, sessionPage = null) => `(() => {
+  const isSignInUrl = ${isSignInUrl.toString()};
   const blockedSite = ${blockedSite.toString()};
   const blockedPageUrl = ${blockedPageUrl.toString()};
   const sessionPageUrl = ${sessionPageUrl.toString()};
@@ -194,7 +201,7 @@ const enforceTabsScript = (browser, sites, sessionPage = null) => `(() => {
       const target = sessionPage ? url : sessionReturnUrl(url) || url;
       const site = blockedSite(target, sites);
       const page = sessionPage
-        ? (!site && /^https?:/i.test(url || '') ? sessionPageUrl(sessionPage.title, sessionPage.text, style, url) : null)
+        ? (!site && /^https?:/i.test(url || '') && !isSignInUrl(url) ? sessionPageUrl(sessionPage.title, sessionPage.text, style, url) : null)
         : site ? blockedPageUrl(site, target, style, actions[site]) : target !== url && target;
       if (!page) return;
       windows[w].tabs[t].url = page;
@@ -247,6 +254,7 @@ module.exports = {
   normalizeSite,
   normalizeApp,
   parseBlocklist,
+  isSignInUrl,
   blockedSite,
   blockedPageUrl,
   PAGE_STYLE,

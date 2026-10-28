@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.9.1] - 2026-10-28
+
+### Fixed
+
+- Signing in to Google no longer trips Entertainment mode: its hops through YouTube (`accounts.youtube.com`,
+  `youtube.com/signin`) are never blocked, during a session either.
+
 ## [1.9.0] - 2026-10-26
 
 ### Added
