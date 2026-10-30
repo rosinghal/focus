@@ -15,6 +15,7 @@ const readForm = () => ({
   clickupToken: $('clickup-token').value,
   clickupTeamId: $('clickup-team').value,
   clickupListId: $('clickup-list').value,
+  aiApiKey: $('ai-key').value,
   whatsappRecipient: $('wa-recipient').value,
 });
 
@@ -30,12 +31,13 @@ const fillForm = (settings) => {
   $('end').value = settings.schedule.end;
   $('sites').value = settings.blockedSites.join('\n');
   $('apps').value = settings.blockedApps.join('\n');
-  $('new').value = $('confirm').value = $('clickup-token').value = '';
+  $('new').value = $('confirm').value = $('clickup-token').value = $('ai-key').value = '';
   $('clickup-team').value = settings.clickupTeamId ?? '';
   $('clickup-list').value = settings.clickupListId ?? '';
   $('wa-recipient').value = recipient = settings.whatsappRecipient ?? '';
   renderRecipient();
   $('clickup-label').textContent = settings.hasClickupToken ? 'ClickUp API token (saved, enter to replace)' : 'ClickUp API token';
+  $('ai-key-label').textContent = settings.hasAiToken ? 'DeepSeek API key (saved, enter to replace)' : 'DeepSeek API key';
   $('new').required = $('confirm').required = !settings.hasPasscode;
   $('new-label').textContent = settings.hasPasscode ? 'New passcode (optional)' : 'New 4-digit passcode';
 };

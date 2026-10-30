@@ -12,6 +12,7 @@ const withDefaults = (config = {}) => ({
   blockedApps: config.blockedApps ?? [],
   clickupToken: config.clickupToken ?? null,
   clickupTeamId: config.clickupTeamId ?? null,
+  aiApiKey: config.aiApiKey ?? null,
   clickupListId: config.clickupListId ?? null,
   whatsappRecipient: config.whatsappRecipient ?? null,
 });
@@ -60,6 +61,9 @@ const applySettings = (current, input, salt) => {
   const schedule = { start: input.schedule?.start, end: input.schedule?.end };
   const { errors: blocklistErrors, blockedSites, blockedApps } = parseBlocklist(input);
   const token = String(input.clickupToken ?? '').trim();
+  // A blank key keeps the saved one, like the ClickUp token; any non-empty string is accepted.
+  const aiKey = String(input.aiApiKey ?? '').trim();
+  const aiApiKey = aiKey || (current.aiApiKey ?? null);
   const ids = clickupIds(input);
   const whatsappRecipient = isBlank(input.whatsappRecipient) ? null : parseRecipient(input.whatsappRecipient);
   const recipientErrors =
@@ -88,6 +92,7 @@ const applySettings = (current, input, salt) => {
       clickupToken,
       clickupTeamId,
       clickupListId,
+      aiApiKey,
       whatsappRecipient,
     },
   };
@@ -124,6 +129,7 @@ const toPublicSettings = (config) => ({
   hasClickupToken: Boolean(config.clickupToken),
   clickupTeamId: config.clickupTeamId,
   clickupListId: config.clickupListId,
+  hasAiToken: Boolean(config.aiApiKey),
   whatsappRecipient: config.whatsappRecipient,
 });
 

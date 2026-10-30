@@ -31,6 +31,9 @@ const render = (next) => {
   $('summary').classList.toggle('hidden', !summary);
   if (!summary) return;
   $('summary-focus').textContent = `Focused ${duration(summary.focusedMs)} · ${clock(summary.startedAt)} – ${clock(summary.endedAt)}`;
+  const { review } = summary;
+  $('review').classList.toggle('hidden', !review);
+  if (review) $('review').textContent = `Focus ${review.level}/10 – ${review.note}`;
   $('summary-today').textContent =
     `Today: ${plural(summary.today.count, 'pomodoro')} · ${duration(summary.today.focusedMs)} focused`;
   $('task-done').classList.toggle('hidden', !summary.taskCompleted);

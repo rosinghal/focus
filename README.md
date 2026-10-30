@@ -56,7 +56,11 @@ ClickUp, and tasks are listed by priority. **+1** after a due date moves the tas
 the browser. `#hashtags` in a new task's goal become ClickUp tags (`Write notes #docs`). Links in
 task names show as their domain with a dotted underline (hover for the full URL). You get 25 minutes of focus, then a 5-minute break; when the break
 ends, the pomodoro window opens again so you can start the next one. It also opens the first time
-you use the Mac after sleep hours end, to start the day with a pomodoro. A small always-on-top window shows the time left and, when it ends, a summary with **Mark task complete**.
+you use the Mac after sleep hours end, to start the day with a pomodoro. A small always-on-top window shows the time left and, when it ends, a summary with **Mark task complete**. If you save a
+DeepSeek API key in Settings, the summary also shows a **focus review**: while you focused, Focus recorded which
+apps and pages you kept in front; the timeline went to DeepSeek together with the task's name, tags and
+description, and comes back as a focus level (1–10) and a one-sentence note. The record of what you did lives in
+memory only and disappears once the review is in.
 
 <img src="docs/screenshots/timer.png" alt="Pomodoro timer" width="300" />
 <img src="docs/screenshots/timer-summary.png" alt="Pomodoro summary" width="300" />
@@ -115,8 +119,9 @@ On first launch Settings opens on the **Passcode** tab. Blocking starts once a p
    from WhatsApp › Settings › Linked Devices on your own phone. Codes are sent from your account and deleted on your
    side, so only the recipient can read them.
 3. **Schedule** — sleep hours.
-4. **Modes** — entertainment sites and apps, and a ClickUp personal API token (`pk_…`), workspace and list for
-   Pomodoro (an ID or a link copied from ClickUp).
+4. **Modes** — entertainment sites and apps, a ClickUp personal API token (`pk_…`), workspace and list for
+   Pomodoro (an ID or a link copied from ClickUp), and an optional DeepSeek API key for pomodoro
+   focus reviews (platform.deepseek.com).
 5. macOS asks once per browser to let Focus control it. Allow it, or that browser isn't covered.
 
 Saving anything that only tightens blocking needs nothing. Loosening it — shorter sleep hours, unblocked sites or apps,
@@ -126,8 +131,12 @@ only while WhatsApp isn't set up. Unlinking WhatsApp needs a code too.
 ## Privacy
 
 Everything stays on your Mac, in `~/Library/Application Support/Focus`: settings, the scrypt-hashed passcode, the
-focus log and the WhatsApp session. The ClickUp token is stored there in plain text and only sent to ClickUp. WhatsApp
-codes are hashed and kept in memory only.
+focus log and the WhatsApp session. The ClickUp and DeepSeek tokens are stored there in plain text and only sent
+to ClickUp and DeepSeek. WhatsApp codes are hashed and kept in memory only.
+
+With a DeepSeek key saved, one summary of what you did during a pomodoro — the frontmost app and open browser
+pages, nothing else on disk — is sent to DeepSeek with the task's name, tags and description so it can rate the
+focus level; the level and its one-sentence note are the only things kept.
 
 WhatsApp messages are sent with [Baileys](https://github.com/WhiskeySockets/Baileys), an unofficial WhatsApp Web
 client, so WhatsApp could flag the account for automation.

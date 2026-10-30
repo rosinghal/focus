@@ -42,6 +42,7 @@ test('ignores fields from the old email-based config', () => {
     clickupToken: null,
     clickupTeamId: null,
     clickupListId: null,
+    aiApiKey: null,
     whatsappRecipient: null,
   });
 });
@@ -79,6 +80,17 @@ test('a blank ClickUp token keeps the saved one and a bad one is rejected', () =
   assert.equal(applySettings(current, { schedule, clickupToken: ' pk_new_1 ' }, 's').config.clickupToken, 'pk_new_1');
   assert.equal(applySettings(current, { schedule, clickupToken: 'abc' }, 's').errors.length, 1);
   assert.deepEqual(changesFor({ clickupToken: 'pk_new' }, current), []);
+});
+
+test('a blank DeepSeek key keeps the saved one and needs no approval', () => {
+  const current = { ...configured(), aiApiKey: 'sk_old' };
+  assert.equal(applySettings(current, { schedule }, 's').config.aiApiKey, 'sk_old');
+  assert.equal(applySettings(current, { schedule, aiApiKey: ' sk_new_1 ' }, 's').config.aiApiKey, 'sk_new_1');
+  assert.equal(applySettings(current, { schedule, aiApiKey: '' }, 's').config.aiApiKey, 'sk_old');
+  assert.equal(applySettings(configured(), { schedule }, 's').config.aiApiKey, null);
+  const replaced = { ...current, aiApiKey: 'sk_new_1' };
+  const saved = applySettings(current, { schedule, aiApiKey: 'sk_new_1' }, 's').config;
+  assert.deepEqual(restrictionChanges(current, saved), []);
 });
 
 test('ClickUp workspace and list accept ids or links and clear when blank', () => {
@@ -174,7 +186,7 @@ test('rejects invalid schedules', () => {
   assert.ok(applySettings(configured(), badTime, 's').errors.includes('Start time must be HH:MM.'));
 });
 
-test('toPublicSettings never exposes the passcode hash', () => {
+test('toPublicSettings never exposes the passcode hash or the API keys', () => {
   assert.deepEqual(toPublicSettings(configured()), {
     schedule,
     hasPasscode: true,
@@ -183,10 +195,12 @@ test('toPublicSettings never exposes the passcode hash', () => {
     hasClickupToken: false,
     clickupTeamId: '1234567',
     clickupListId: '900000000001',
+    hasAiToken: false,
     whatsappRecipient: '+447700900123',
   });
-  const withToken = { ...configured(), clickupToken: 'pk_secret' };
+  const withToken = { ...configured(), clickupToken: 'pk_secret', aiApiKey: 'sk_secret' };
   assert.equal(JSON.stringify(toPublicSettings(withToken)).includes('pk_secret'), false);
+  assert.equal(JSON.stringify(toPublicSettings(withToken)).includes('sk_secret'), false);
   assert.equal(toPublicSettings(withToken).hasClickupToken, true);
 });
 
@@ -213,7 +227,7 @@ test('store round-trips config, state and history', () => {
   assert.deepEqual(store.loadHistory(), [{ type: 'grace', at: 1 }]);
 
   store.saveConfig(configured());
-  assert.deepEqual(store.loadConfig(), configured());
+  assert.deepEqual(store.loadConfig(), withDefaults(configured()));
 
   const saved = { bypassUntil: 123, graceUsedAt: 45, trackingSince: 6, sessionUntil: 7, sessionKind: 'kid', kidUsedAt: 8, hiddenApps: ['Notes'], pomodoro: null, pomodoroSummary: null, pomodoroLog: [], sessionLog: [], morningPromptedAt: 9 };
   store.saveState(saved);

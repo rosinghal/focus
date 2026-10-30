@@ -44,6 +44,8 @@ const { moonBitmap } = require('./icon');
 const blocklist = require('./blocklist');
 const pomodoro = require('./pomodoro');
 const clickup = require('./clickup');
+const activity = require('./activity');
+const ai = require('./ai');
 const meeting = require('./meeting');
 
 const TICK_MS = 5000;
@@ -88,6 +90,8 @@ let meetingState = { kind: null, awaySince: 0, presenting: false };
 let meetingBrowsers = [];
 // Every task shown in the window, since searches run as you type and can resolve out of order.
 let pomodoroMatches = new Map();
+// Frontmost app and browser tab samples while a pomodoro focuses. Memory only: it goes to DeepSeek at the end and is then dropped.
+let activityLog = [];
 let clickupClient = null;
 let quitAllowed = false;
 let sessionOffer = null;
@@ -378,16 +382,53 @@ const updateTimer = () => {
 };
 
 const finishFocus = (completed) => {
+  const samples = activityLog;
+  activityLog = [];
   const { log, summary } = pomodoro.finishFocus(state.pomodoro, state.pomodoroLog, Date.now(), completed);
   updateState({ pomodoroLog: log, pomodoroSummary: summary });
+  reviewFocus(summary, samples);
+};
+
+// DeepSeek rates the session against the ClickUp task and the activity log; the timer shows it when it arrives.
+const reviewFocus = async (summary, samples) => {
+  if (!config.aiApiKey) return;
+  try {
+    const prompt = activity.reviewPrompt({
+      task: summary.task,
+      timeline: activity.timeline(samples, summary.endedAt),
+      focusedMs: summary.focusedMs,
+    });
+    const review = activity.parseReview(await ai.judge(config.aiApiKey, prompt));
+    const current = state.pomodoroSummary;
+    if (!review || !current || current.endedAt !== summary.endedAt) return;
+    updateState({ pomodoroSummary: { ...current, review } });
+    updateTimer();
+  } catch {
+    // No key, no network or no usable verdict: the summary stays without a review.
+  }
 };
 
 const startPomodoro = (task) => {
+  activityLog = [];
   updateState({ pomodoro: pomodoro.startPomodoro(task, Date.now()), pomodoroSummary: null });
   pomodoroMatches = new Map();
   pomodoroWindow?.destroy();
   showTimer();
+  fetchTaskDetails(task);
   tick();
+};
+
+// Brings in the task's ClickUp tags and description, so the focus review knows what the task is about.
+const fetchTaskDetails = async (task) => {
+  if (!config.clickupToken) return;
+  try {
+    const details = await clickupFor(config).getTask(task.id);
+    if (state.pomodoro?.task?.id === task.id) {
+      updateState({ pomodoro: { ...state.pomodoro, task: { ...state.pomodoro.task, ...details } } });
+    }
+  } catch {
+    // The review falls back to the task name, list and status.
+  }
 };
 
 const createPomodoroTask = async (input) => {
@@ -723,6 +764,25 @@ const backToMeeting = (browsers) => {
   return run('osascript', ['-l', 'JavaScript', '-e', script], { timeout: BLOCK_SCRIPT_TIMEOUT_MS }).catch(() => {});
 };
 
+let activityScanning = false;
+
+// Samples the frontmost app and browser tab only while a pomodoro is focusing, so one extra AppleScript each tick.
+const recordActivity = async (processes) => {
+  if (!focusing() || lockWindows.length || activityScanning) return;
+  activityScanning = true;
+  try {
+    const { stdout } = await run(
+      'osascript',
+      ['-l', 'JavaScript', '-e', activity.scanScript(blocklist.runningBrowsers(processes))],
+      { timeout: BLOCK_SCRIPT_TIMEOUT_MS },
+    ).catch(() => ({ stdout: '' }));
+    const sample = activity.toSample(activity.parseScan(stdout));
+    if (sample) activityLog = activity.addSample(activityLog, { ...sample, at: Date.now() });
+  } finally {
+    activityScanning = false;
+  }
+};
+
 const watchMeeting = async (processes) => {
   const browsers = blocklist.runningBrowsers(processes);
   const scan = await run('osascript', ['-l', 'JavaScript', '-e', meeting.scanScript(browsers)], {
@@ -758,6 +818,7 @@ const enforceBlocklist = async () => {
     }
     await enforceTabs(processes, session, offer);
     if (!session) offersPaused = false;
+    await recordActivity(processes);
     await watchMeeting(processes);
   } catch {
     // ps failed; try again next tick.

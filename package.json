@@ -1,6 +1,6 @@
 {
   "name": "focus",
-  "version": "1.9.1",
+  "version": "1.10.0",
   "description": "A macOS menu-bar app that locks every screen during sleep hours, Screen Time style.",
   "main": "src/main.js",
   "scripts": {
@@ -45,6 +45,8 @@
     }
   },
   "dependencies": {
+    "@ai-sdk/deepseek": "^3.0.76",
+    "ai": "^7.0.157",
     "baileys": "7.0.0-rc14",
     "qrcode": "1.5.4"
   }

@@ -188,6 +188,14 @@ const createClient = ({ token, teamId, listId }, fetchImpl = fetch, clock = Date
       cache.clear();
       return task;
     },
+    // The picker's search leaves out tags and the description; the focus review wants what the task is about.
+    getTask: async (taskId) => {
+      const raw = await request(`/task/${encodeURIComponent(taskId)}`);
+      return {
+        tags: (raw.tags ?? []).map((tag) => String(tag?.name ?? '')).filter(Boolean),
+        description: String(raw.content_text ?? raw.content ?? ''),
+      };
+    },
     postponeTask: async (taskId, now) => {
       const due = tomorrowDueDate(now);
       await request(`/task/${encodeURIComponent(taskId)}`, {

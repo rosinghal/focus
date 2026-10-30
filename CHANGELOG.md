@@ -3,6 +3,16 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.10.0] - 2026-10-30
+
+### Added
+
+- Focus reviews for pomodoros. While a pomodoro focuses, Focus samples the frontmost app and the open browser
+  page (kept in memory only). When the pomodoro ends, the timeline goes to DeepSeek along with the ClickUp task's
+  name, list, status, tags and description, and the answer — a focus level 1–10 plus a one-sentence note — shows in
+  the timer's summary. Needs a DeepSeek API key in Settings › Modes (saved as-is, never shown to a window; a blank
+  field keeps the saved one).
+
 ## [1.9.1] - 2026-10-28
 
 ### Fixed

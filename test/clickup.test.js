@@ -264,6 +264,15 @@ test('createTask posts to the pomodoro list', async () => {
   assert.deepEqual(JSON.parse(post.options.body).assignees, [7]);
 });
 
+test('getTask brings tags and the description for the focus review', async () => {
+  const { calls, fetchImpl } = fakeFetch([
+    [/\/task\/abc$/, () => ({ name: 'Fix login', tags: [{ name: 'bug' }, { name: 'web' }], content: '<p>500s on submit</p>', content_text: '500s on submit' })],
+  ]);
+  const details = await createClient(ids, fetchImpl).getTask('abc');
+  assert.deepEqual(details, { tags: ['bug', 'web'], description: '500s on submit' });
+  assert.ok(calls[0].url.endsWith('/task/abc'));
+});
+
 test('toTask reads the priority id', async () => {
   const { fetchImpl } = fakeFetch([
     [/\/user$/, () => ({ user: { id: 7 } })],

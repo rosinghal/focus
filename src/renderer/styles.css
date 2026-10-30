@@ -201,6 +201,7 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .timer-task { display: block; margin-top: 2px; color: var(--accent); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-app-region: no-drag; }
 .timer-summary { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; }
 .timer-summary p + p { margin-top: 4px; }
+.review { color: var(--ok); word-wrap: break-word; }
 .timer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 10px; -webkit-app-region: no-drag; }
 .timer-actions button { padding: 5px 12px; font-size: 13px; }
 .timer-actions .error { font-size: 12px; flex-basis: 100%; }
