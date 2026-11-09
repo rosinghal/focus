@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.10.1] - 2026-11-09
+
+### Fixed
+
+- Focus reviews never appeared in the installed app: `zod`, a peer dependency of the AI SDK, wasn't packaged, so
+  the DeepSeek call failed silently. It is now a direct dependency, and a test checks that required peer
+  dependencies are declared.
+
 ## [1.10.0] - 2026-10-30
 
 ### Added
