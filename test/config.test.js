@@ -204,7 +204,7 @@ test('toPublicSettings never exposes the passcode hash or the API keys', () => {
   assert.equal(toPublicSettings(withToken).hasClickupToken, true);
 });
 
-test('store round-trips config, state and history', () => {
+test('store round-trips config, state, history and pomodoros', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'focus-'));
   const store = createStore(dir);
   assert.deepEqual(store.loadConfig(), withDefaults());
@@ -218,18 +218,20 @@ test('store round-trips config, state and history', () => {
     hiddenApps: [],
     pomodoro: null,
     pomodoroSummary: null,
-    pomodoroLog: [],
     sessionLog: [],
     morningPromptedAt: 0,
   });
   assert.deepEqual(store.loadHistory(), []);
   store.saveHistory([{ type: 'grace', at: 1 }]);
   assert.deepEqual(store.loadHistory(), [{ type: 'grace', at: 1 }]);
+  assert.deepEqual(store.loadPomodoros(), []);
+  store.savePomodoros([{ at: 2, focusedMs: 3, completed: true }]);
+  assert.deepEqual(store.loadPomodoros(), [{ at: 2, focusedMs: 3, completed: true }]);
 
   store.saveConfig(configured());
   assert.deepEqual(store.loadConfig(), withDefaults(configured()));
 
-  const saved = { bypassUntil: 123, graceUsedAt: 45, trackingSince: 6, sessionUntil: 7, sessionKind: 'kid', kidUsedAt: 8, hiddenApps: ['Notes'], pomodoro: null, pomodoroSummary: null, pomodoroLog: [], sessionLog: [], morningPromptedAt: 9 };
+  const saved = { bypassUntil: 123, graceUsedAt: 45, trackingSince: 6, sessionUntil: 7, sessionKind: 'kid', kidUsedAt: 8, hiddenApps: ['Notes'], pomodoro: null, pomodoroSummary: null, sessionLog: [], morningPromptedAt: 9 };
   store.saveState(saved);
   assert.deepEqual(store.loadState(), saved);
   fs.rmSync(dir, { recursive: true });

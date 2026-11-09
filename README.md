@@ -60,7 +60,8 @@ you use the Mac after sleep hours end, to start the day with a pomodoro. A small
 DeepSeek API key in Settings, the summary also shows a **focus review**: while you focused, Focus recorded which
 apps and pages you kept in front; the timeline went to DeepSeek together with the task's name, tags and
 description, and comes back as a focus level (1–10) and a one-sentence note. The record of what you did lives in
-memory only and disappears once the review is in.
+memory only and disappears once the review is in. Every pomodoro of the last 90 days — task, start and end,
+focused minutes, whether it finished, and its focus level and note — is kept in `pomodoros.json`.
 
 <img src="docs/screenshots/timer.png" alt="Pomodoro timer" width="300" />
 <img src="docs/screenshots/timer-summary.png" alt="Pomodoro summary" width="300" />
@@ -131,7 +132,7 @@ only while WhatsApp isn't set up. Unlinking WhatsApp needs a code too.
 ## Privacy
 
 Everything stays on your Mac, in `~/Library/Application Support/Focus`: settings, the scrypt-hashed passcode, the
-focus log and the WhatsApp session. The ClickUp and DeepSeek tokens are stored there in plain text and only sent
+focus log, the pomodoro history and the WhatsApp session. The ClickUp and DeepSeek tokens are stored there in plain text and only sent
 to ClickUp and DeepSeek. WhatsApp codes are hashed and kept in memory only.
 
 With a DeepSeek key saved, one summary of what you did during a pomodoro — the frontmost app and open browser

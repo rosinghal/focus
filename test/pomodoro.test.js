@@ -10,6 +10,7 @@ const {
   focusedMs,
   todayTotals,
   finishFocus,
+  addReview,
   timerView,
 } = require('../src/pomodoro');
 
@@ -57,10 +58,22 @@ test('todayTotals counts completed pomodoros and all focused time today', () => 
   assert.deepEqual(todayTotals(log, at(12)), { count: 1, focusedMs: minutes(32) });
 });
 
-test('finishFocus logs the pomodoro, drops earlier days and summarises it', () => {
-  const old = [{ at: new Date(2026, 9, 20, 22).getTime(), focusedMs: minutes(25), completed: true }];
-  const done = finishFocus(startPomodoro(task, at(9)), old, at(9, 25), true);
-  assert.deepEqual(done.log, [{ at: at(9, 25), focusedMs: FOCUS_MS, completed: true }]);
+test('finishFocus logs the pomodoro with its task, keeps 90 days and summarises it', () => {
+  const day = 24 * 60 * 60 * 1000;
+  const yesterday = { at: at(9) - day, focusedMs: minutes(25), completed: true };
+  const expired = { at: at(9, 25) - 90 * day, focusedMs: minutes(25), completed: true };
+  const done = finishFocus(startPomodoro(task, at(9)), [expired, yesterday], at(9, 25), true);
+  assert.deepEqual(done.log, [
+    yesterday,
+    {
+      at: at(9, 25),
+      startedAt: at(9),
+      endedAt: at(9, 25),
+      focusedMs: FOCUS_MS,
+      completed: true,
+      task: { id: '1', name: 'Write report' },
+    },
+  ]);
   assert.deepEqual(done.summary, {
     completed: true,
     taskCompleted: false,
@@ -73,6 +86,14 @@ test('finishFocus logs the pomodoro, drops earlier days and summarises it', () =
   const stopped = finishFocus(startPomodoro(task, at(10)), done.log, at(10, 12), false);
   assert.equal(stopped.summary.endedAt, at(10, 12));
   assert.deepEqual(stopped.summary.today, { count: 1, focusedMs: FOCUS_MS + minutes(12) });
+  assert.equal(stopped.log.length, 3);
+});
+
+test('addReview scores the pomodoro that ended at that time', () => {
+  const { log } = finishFocus(startPomodoro(task, at(9)), [], at(9, 25), true);
+  const review = { level: 8, note: 'Stayed on the report.' };
+  assert.deepEqual(addReview(log, at(9, 25), review), [{ ...log[0], review }]);
+  assert.deepEqual(addReview(log, at(10), review), log);
 });
 
 test('timerView shows focus, then break with the summary, then the summary alone', () => {

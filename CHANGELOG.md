@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.11.0] - 2026-11-09
+
+### Added
+
+- Pomodoro history: every pomodoro of the last 90 days is kept in `pomodoros.json` with its task, start and end,
+  focused time, whether it finished, and its focus review (level and note). Before, only today's pomodoros were
+  kept, without task or review. Today's pomodoros from `state.json` are moved over on first launch.
+
 ## [1.10.1] - 2026-11-09
 
 ### Fixed

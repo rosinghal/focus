@@ -49,13 +49,13 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
 | `src/whatsapp.js` | Baileys client (QR linking, reconnect, send). Session in `userData/whatsapp-auth`. Sends to `config.whatsappRecipient`. |
 | `src/history.js` | Pure focus log: unlock events, per-night score, weekly summary, streak, motivation text. |
 | `src/blocklist.js` | Pure blocklist logic: normalise/validate sites and apps, URL matching, `ps` parsing, blocked/session pages, session timing, JXA tab and hide scripts. |
-| `src/pomodoro.js` | Pure pomodoro phases (`advancePomodoro`), focus summary and today's log (`finishFocus`), timer window view (`timerView`). |
+| `src/pomodoro.js` | Pure pomodoro phases (`advancePomodoro`), focus summary and the 90-day log (`finishFocus`, `addReview`), timer window view (`timerView`). |
 | `src/activity.js` | Pure focus-review logic: activity samples (`toSample`, `addSample`), the timeline for the prompt (`timeline`), the review prompt and its parsed verdict (`parseReview`), and the JXA tab scan (`scanScript`). |
 | `src/ai.js` | DeepSeek call through the Vercel AI SDK (`judge`, dynamic `import` like Baileys). |
 | `src/clickup.js` | ClickUp API: token check, task matching, new-task body, and a `fetch` client (`searchTasks`, `createTask`, `completeTask`), `closingStatus`, `parseTeamId` / `parseListId` (ID or ClickUp link). |
 | `src/meeting.js` | Pure meeting logic: Zoom/Meet detection (`meetingKind`), `isAway`, one-minute reminder timing, JXA scan and focus-Meet-tab scripts. |
 | `src/config.js` | Pure config defaults, validation (`parseRecipient` for the WhatsApp number) and `applySettings`. |
-| `src/store.js` | JSON persistence in `userData` (`config.json`, `state.json`, `history.json`). |
+| `src/store.js` | JSON persistence in `userData` (`config.json`, `state.json`, `history.json`, `pomodoros.json`). |
 | `src/icon.js` | Tray icon drawn as a BGRA bitmap (no image assets). |
 | `src/preload.js` | `window.focusLock` bridge exposed to renderers. |
 | `src/renderer/` | `lock.*` (lock screen + keypad), `settings.*`, `blocked.*` (session offer and in-session notice), `pomodoro.*` (goal and task picker), `timer.*` (top-right pomodoro timer, summary and focus review), `reminder.*` (meeting reminder), `quit.*` (passcode to quit), `escape.js` (Esc closes the window unless a `<dialog>` is open; not used on the lock screen), `links.js` (`titleNodes`: URLs in task names shown as their domain, dotted underline, full URL as tooltip; used by pomodoro and timer, tested via `vm`), shared `styles.css`. |
@@ -145,7 +145,8 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   if it is already open it is updated (`timer:update`) rather than replaced. Its height follows the content: a
   `ResizeObserver` in `timer.js` reports it via `timer:resize` (clamped by `TIMER_HEIGHT_LIMITS`). The close button
   stays last in `timer.html`, because Electron lets a later drag region override an earlier no-drag one. When focus ends or is stopped,
-  `finishFocus` appends to `state.pomodoroLog` (today only) and sets `state.pomodoroSummary`, which the window shows
+  `finishFocus` appends to the pomodoro log (`pomodoros.json`, `HISTORY_DAYS` = 90 days; task id and name, times,
+  `completed`, later `review`; it replaced today-only `state.pomodoroLog`, migrated once at startup) and sets `state.pomodoroSummary`, which the window shows
   during the break and after. The renderer gets only the task name; `timer:open-task` opens the URL from main.
   `timer:complete-task` closes the summary's task (`completeTask`: reads the task's list and sets the status picked by
   `closingStatus`) and sets `pomodoroSummary.taskCompleted`. `config.clickupToken` is never sent to a renderer
@@ -153,7 +154,8 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   During focus each tick also samples the frontmost app and the front browser tab (`act`, in-memory `activityLog`,
   never `state`); when a focus phase ends, `reviewFocus` sends its `timeline` with the task's fetched details
   (`clickup.js getTask`: tags, description) to DeepSeek — only while `config.aiApiKey` is saved — and the verdict
-  `{level, note}` is attached to `pomodoroSummary.review` and shown by the timer. `config.aiApiKey` is never sent to
+  `{level, note}` is saved on the log entry (`addReview`, matched by `endedAt`) and attached to
+  `pomodoroSummary.review` and shown by the timer. `config.aiApiKey` is never sent to
   a renderer (`hasAiToken`); a blank key field keeps the saved one, and changing it needs no approval.
 - **Meeting mode** is detected, not started: each enforcement pass (`watchMeeting`, after the blocklist) treats Zoom's
   `CptHost` process as a Zoom meeting, and a `meet.google.com/xxx-xxxx-xxx` tab in a scriptable browser as a Meet

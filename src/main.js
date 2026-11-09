@@ -68,11 +68,11 @@ let state = {
   hiddenApps: [],
   pomodoro: null,
   pomodoroSummary: null,
-  pomodoroLog: [],
   sessionLog: [],
   morningPromptedAt: 0,
 };
 let history = [];
+let pomodoroLog = [];
 let attempts = unlock.NO_FAILURES;
 let passcodeRequestedAt = 0;
 let otpRecord = null;
@@ -384,8 +384,10 @@ const updateTimer = () => {
 const finishFocus = (completed) => {
   const samples = activityLog;
   activityLog = [];
-  const { log, summary } = pomodoro.finishFocus(state.pomodoro, state.pomodoroLog, Date.now(), completed);
-  updateState({ pomodoroLog: log, pomodoroSummary: summary });
+  const { log, summary } = pomodoro.finishFocus(state.pomodoro, pomodoroLog, Date.now(), completed);
+  pomodoroLog = log;
+  store.savePomodoros(pomodoroLog);
+  updateState({ pomodoroSummary: summary });
   reviewFocus(summary, samples);
 };
 
@@ -399,8 +401,11 @@ const reviewFocus = async (summary, samples) => {
       focusedMs: summary.focusedMs,
     });
     const review = activity.parseReview(await ai.judge(config.aiApiKey, prompt));
+    if (!review) return;
+    pomodoroLog = pomodoro.addReview(pomodoroLog, summary.endedAt, review);
+    store.savePomodoros(pomodoroLog);
     const current = state.pomodoroSummary;
-    if (!review || !current || current.endedAt !== summary.endedAt) return;
+    if (!current || current.endedAt !== summary.endedAt) return;
     updateState({ pomodoroSummary: { ...current, review } });
     updateTimer();
   } catch {
@@ -1213,6 +1218,12 @@ const start = () => {
     config = store.loadConfig();
     state = store.loadState();
     history = store.loadHistory();
+    pomodoroLog = store.loadPomodoros();
+    if (state.pomodoroLog) {
+      // Before pomodoros.json, today's pomodoros lived in state.json.
+      if (!pomodoroLog.length) store.savePomodoros((pomodoroLog = state.pomodoroLog));
+      updateState({ pomodoroLog: undefined });
+    }
     if (isConfigured(config) && !state.trackingSince) updateState({ trackingSince: Date.now() });
     if (!state.morningPromptedAt) updateState({ morningPromptedAt: Date.now() });
 

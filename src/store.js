@@ -19,6 +19,7 @@ const createStore = (dir) => {
   const configFile = path.join(dir, 'config.json');
   const stateFile = path.join(dir, 'state.json');
   const historyFile = path.join(dir, 'history.json');
+  const pomodorosFile = path.join(dir, 'pomodoros.json');
   return {
     loadConfig: () => withDefaults(readJson(configFile)),
     saveConfig: (config) => writeJson(configFile, config),
@@ -32,7 +33,6 @@ const createStore = (dir) => {
       hiddenApps: [],
       pomodoro: null,
       pomodoroSummary: null,
-      pomodoroLog: [],
       sessionLog: [],
       morningPromptedAt: 0,
       ...readJson(stateFile),
@@ -40,6 +40,8 @@ const createStore = (dir) => {
     saveState: (state) => writeJson(stateFile, state),
     loadHistory: () => readJson(historyFile).events ?? [],
     saveHistory: (events) => writeJson(historyFile, { events }),
+    loadPomodoros: () => readJson(pomodorosFile).entries ?? [],
+    savePomodoros: (entries) => writeJson(pomodorosFile, { entries }),
   };
 };
 

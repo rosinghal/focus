@@ -1,5 +1,7 @@
 const FOCUS_MS = 25 * 60 * 1000;
 const BREAK_MS = 5 * 60 * 1000;
+const HISTORY_DAYS = 90;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const startPomodoro = (task, now) => ({ phase: 'focus', startedAt: now, until: now + FOCUS_MS, task });
 
@@ -33,11 +35,19 @@ const todayTotals = (log, now) => {
   };
 };
 
-// Ends the focus part of a pomodoro: logs it (keeping only today's entries) and builds the summary to show.
+// Ends the focus part of a pomodoro: logs it (keeping HISTORY_DAYS of entries) and builds the summary to show.
 const finishFocus = (pomodoro, log, now, completed) => {
   const focused = focusedMs(pomodoro, now);
   const startedAt = focusStart(pomodoro);
-  const nextLog = [...log.filter((entry) => sameDay(entry.at, now)), { at: now, focusedMs: focused, completed }];
+  const entry = {
+    at: now,
+    startedAt,
+    endedAt: startedAt + focused,
+    focusedMs: focused,
+    completed,
+    task: { id: pomodoro.task.id, name: pomodoro.task.name },
+  };
+  const nextLog = [...log.filter((old) => old.at > now - HISTORY_DAYS * DAY_MS), entry];
   return {
     log: nextLog,
     summary: {
@@ -55,6 +65,9 @@ const finishFocus = (pomodoro, log, now, completed) => {
 const publicTask = (task) => (task ? { name: task.name } : null);
 
 const publicSummary = (summary) => summary && { ...summary, task: publicTask(summary.task) };
+
+const addReview = (log, endedAt, review) =>
+  log.map((entry) => (entry.endedAt === endedAt ? { ...entry, review } : entry));
 
 const timerView = (pomodoro, summary, now) => {
   if (isPomodoroActive(pomodoro, now)) {
@@ -78,6 +91,7 @@ const timerView = (pomodoro, summary, now) => {
 module.exports = {
   FOCUS_MS,
   BREAK_MS,
+  HISTORY_DAYS,
   startPomodoro,
   isPomodoroActive,
   isFocusing,
@@ -85,5 +99,6 @@ module.exports = {
   focusedMs,
   todayTotals,
   finishFocus,
+  addReview,
   timerView,
 };
