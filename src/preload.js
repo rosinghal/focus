@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('focusLock', {
   starTask: (taskId, starred) => ipcRenderer.invoke('pomodoro:star', taskId, starred),
   postponeTask: (taskId) => ipcRenderer.invoke('pomodoro:postpone', taskId),
   openPomodoroTask: (taskId) => ipcRenderer.invoke('pomodoro:open-task', taskId),
+  openPomodoroLink: (taskId, url) => ipcRenderer.invoke('pomodoro:open-link', taskId, url),
   timerStatus: () => ipcRenderer.invoke('timer:status'),
   openTimerTask: () => ipcRenderer.invoke('timer:open-task'),
   completeTimerTask: () => ipcRenderer.invoke('timer:complete-task'),

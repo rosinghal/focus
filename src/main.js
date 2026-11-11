@@ -1088,6 +1088,11 @@ const registerIpc = () => {
     if (/^https:\/\//.test(url ?? '')) shell.openExternal(url);
   });
 
+  ipcMain.handle('pomodoro:open-link', (event, taskId, url) => {
+    if (!isPomodoroSender(event) || typeof url !== 'string' || !/^https?:\/\//.test(url)) return;
+    if (pomodoroMatches.get(taskId)?.name?.includes(url)) shell.openExternal(url);
+  });
+
   ipcMain.handle('pomodoro:star', async (event, taskId, starred) => {
     if (!isPomodoroSender(event) || !clickupReady()) return { ok: false, error: CLICKUP_SETUP_ERROR };
     const task = pomodoroMatches.get(taskId);

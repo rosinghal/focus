@@ -41,13 +41,13 @@ const details = (task) => {
   return small;
 };
 
-const option = (value, title, detail, checked, action, link) => {
+const option = (value, title, detail, checked, action, link, onOpenLink) => {
   const label = document.createElement('label');
   label.className = 'task';
   const radio = Object.assign(document.createElement('input'), { type: 'radio', name: 'task', value, checked });
   const text = document.createElement('span');
   const strong = document.createElement('strong');
-  strong.append(...titleNodes(title));
+  strong.append(...titleNodes(title, onOpenLink));
   if (link) strong.append(link);
   text.append(strong, detail);
   label.append(radio, text, ...(action ? [action] : []));
@@ -103,7 +103,9 @@ const renderTasks = (tasks, preferred = selected()) => {
   const keep = tasks.some((task) => task.id === preferred) || (offerNew && preferred === NEW_TASK) ? preferred : fallback;
   $('tasks').replaceChildren(
     ...tasks.map((task) =>
-      option(task.id, task.name, details(task), task.id === keep, starButton(task), openButton(task)),
+      option(task.id, task.name, details(task), task.id === keep, starButton(task), openButton(task), (url) =>
+        window.focusLock.openPomodoroLink(task.id, url),
+      ),
     ),
     ...(offerNew ? [option(NEW_TASK, `“${goalName()}”`, newTaskDetail(), keep === NEW_TASK, createButton())] : []),
   );

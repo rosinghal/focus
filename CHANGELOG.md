@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.11.1] - 2026-11-11
+
+### Fixed
+
+- Links in task names in the pomodoro picker can be clicked: they open the full URL in your browser instead of only
+  selecting the task.
+
 ## [1.11.0] - 2026-11-09
 
 ### Added

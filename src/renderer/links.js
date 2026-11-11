@@ -22,9 +22,26 @@ const titleParts = (text) => {
   return parts;
 };
 
-const titleNodes = (text) =>
+const linkNode = (text, url, onOpen) => {
+  const node = Object.assign(document.createElement('span'), { className: 'title-link', textContent: text, title: url });
+  if (!onOpen) return node;
+  node.classList.add('clickable');
+  node.setAttribute('role', 'link');
+  node.tabIndex = 0;
+  const open = (event) => {
+    // The link sits inside a task <label>; without this the click also selects the task.
+    event.preventDefault();
+    event.stopPropagation();
+    onOpen(url);
+  };
+  node.addEventListener('click', open);
+  node.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') open(event);
+  });
+  return node;
+};
+
+const titleNodes = (text, onOpen) =>
   titleParts(text).map(({ text: partText, url }) =>
-    url
-      ? Object.assign(document.createElement('span'), { className: 'title-link', textContent: partText, title: url })
-      : document.createTextNode(partText),
+    url ? linkNode(partText, url, onOpen) : document.createTextNode(partText),
   );
