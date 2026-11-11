@@ -158,7 +158,7 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   `pomodoroSummary.review` and shown by the timer. `config.aiApiKey` is never sent to
   a renderer (`hasAiToken`); a blank key field keeps the saved one, and changing it needs no approval.
 - **Meeting mode** is detected, not started: each enforcement pass (`watchMeeting`, after the blocklist) treats Zoom's
-  `CptHost` process as a Zoom meeting, and a `meet.google.com/xxx-xxxx-xxx` tab in a scriptable browser as a Meet
+  `CptHost` process as a Zoom meeting, and a `meet.google.com/xxx-xxxx-xxx` tab (also under `/meet/` or `/_meet/`) in a scriptable browser as a Meet
   meeting (`scanScript`, which also reports the front app and its front tab). Being in another app (or another tab,
   for Meet) is "away"; Focus's own windows and a failed scan are not. After `REMINDER_DELAY_MS` away,
   `renderer/reminder.html` shows inactive in the top-right (below the timer if open). Returning hides it; closing it

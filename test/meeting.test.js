@@ -19,6 +19,9 @@ const scan = (front, frontUrl = null, meetBrowsers = []) => ({ front, frontUrl, 
 test('MEET_URL matches meeting rooms only', () => {
   assert.equal(MEET_URL.test('https://meet.google.com/abc-defg-hij'), true);
   assert.equal(MEET_URL.test('https://meet.google.com/abc-defg-hij?authuser=1'), true);
+  assert.equal(MEET_URL.test('https://meet.google.com/meet/sgk-nfth-two?authuser=me@example.com'), true);
+  assert.equal(MEET_URL.test('https://meet.google.com/_meet/abc-defg-hij'), true);
+  assert.equal(MEET_URL.test('https://meet.google.com/meet/'), false);
   assert.equal(MEET_URL.test('https://meet.google.com/'), false);
   assert.equal(MEET_URL.test('https://meet.google.com/landing'), false);
   assert.equal(MEET_URL.test('https://example.com/?u=https://meet.google.com/abc-defg-hij'), false);

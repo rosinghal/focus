@@ -2,7 +2,8 @@ const REMINDER_DELAY_MS = 60 * 1000;
 const ZOOM_APP = 'zoom.us';
 // Zoom runs CptHost only while a meeting is open.
 const ZOOM_MEETING_PROCESS = 'CptHost';
-const MEET_URL = /^https:\/\/meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}(?:[/?#]|$)/i;
+// Some links put the code under a prefix such as /meet/ or /_meet/.
+const MEET_URL = /^https:\/\/meet\.google\.com\/(?:_?meet\/)?[a-z]{3}-[a-z]{4}-[a-z]{3}(?:[/?#]|$)/i;
 const NEUTRAL_APPS = ['focus', 'electron'];
 
 const MEETING_NAMES = { zoom: 'Zoom', meet: 'Google Meet' };
