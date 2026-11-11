@@ -52,10 +52,11 @@ const awaySince = (since, { away, presenting }, now) => (away && !presenting ? s
 
 const shouldRemind = (since, now) => since > 0 && now - since >= REMINDER_DELAY_MS;
 
-// Lists browsers with a Meet tab, the front tab's URL, and whether a window of the front app fills a screen (window
-// bounds need no Screen Recording permission, unlike titles). Each browser asks once for Automation permission; until
-// then it is skipped.
-const scanScript = (browsers) => `(() => {
+// Lists browsers with a Meet tab, the front tab's URL, and whether the front app is full screen. With Accessibility
+// that is AXFullScreen; without it, window bounds (no permission needed) are the fallback, and since full screen on a
+// notched display leaves the strip under the menu bar empty, a window filling the area below it counts. Each browser
+// asks once for Automation permission; until then it is skipped.
+const scanScript = (browsers, { accessibility = false } = {}) => `(() => {
   ObjC.import('AppKit');
   ObjC.import('CoreGraphics');
   const meet = ${MEET_URL};
@@ -65,23 +66,33 @@ const scanScript = (browsers) => `(() => {
   let frontFullScreen = null;
   try {
     const pid = frontApp.processIdentifier;
-    const screens = $.NSScreen.screens;
-    const sizes = [];
-    for (let i = 0; i < screens.count; i++) {
-      const { size } = screens.objectAtIndex(i).frame;
-      sizes.push([size.width, size.height]);
+    if (${accessibility}) {
+      frontFullScreen = Application('System Events')
+        .processes.whose({ unixId: pid })[0]
+        .windows()
+        .some((w) => w.attributes.byName('AXFullScreen').value() === true);
+    } else {
+      const screens = $.NSScreen.screens;
+      const areas = [];
+      for (let i = 0; i < screens.count; i++) {
+        const screen = screens.objectAtIndex(i);
+        const frame = screen.frame;
+        const visible = screen.visibleFrame;
+        const menuBar = frame.origin.y + frame.size.height - (visible.origin.y + visible.size.height);
+        areas.push([frame.size.width, frame.size.height - menuBar]);
+      }
+      const windows = ObjC.deepUnwrap(
+        ObjC.castRefToObject(
+          $.CGWindowListCopyWindowInfo($.kCGWindowListOptionOnScreenOnly | $.kCGWindowListExcludeDesktopElements, $.kCGNullWindowID),
+        ),
+      );
+      frontFullScreen = windows.some(
+        (w) =>
+          w.kCGWindowOwnerPID === pid &&
+          w.kCGWindowLayer === 0 &&
+          areas.some(([width, height]) => w.kCGWindowBounds.Width === width && w.kCGWindowBounds.Height >= height),
+      );
     }
-    const windows = ObjC.deepUnwrap(
-      ObjC.castRefToObject(
-        $.CGWindowListCopyWindowInfo($.kCGWindowListOptionOnScreenOnly | $.kCGWindowListExcludeDesktopElements, $.kCGNullWindowID),
-      ),
-    );
-    frontFullScreen = windows.some(
-      (w) =>
-        w.kCGWindowOwnerPID === pid &&
-        w.kCGWindowLayer === 0 &&
-        sizes.some(([width, height]) => w.kCGWindowBounds.Width === width && w.kCGWindowBounds.Height === height),
-    );
   } catch (e) {}
   const meetBrowsers = [];
   let frontUrl = null;

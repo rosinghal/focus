@@ -163,8 +163,9 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   for Meet) is "away"; Focus's own windows and a failed scan are not. After `REMINDER_DELAY_MS` away,
   `renderer/reminder.html` shows inactive in the top-right (below the timer if open). Returning hides it; closing it
   or **Back to meeting** restarts the minute. While on the meeting and not away, the same window (`?kind=fullscreen`,
-  `reminderKind`) suggests full screen when the scan's `frontFullScreen` (a window of the front app the size of a screen,
-  from `CGWindowListCopyWindowInfo`) is false; closing it sets `fullScreenDismissed` for that meeting. Its **Go full
+  `reminderKind`) suggests full screen when the scan's `frontFullScreen` is false: `AXFullScreen` of the front app's windows when
+  Focus has Accessibility (`isTrustedAccessibilityClient(false)`), otherwise a window from `CGWindowListCopyWindowInfo`
+  filling the screen below the menu bar (full screen on a notched display has the same bounds as a maximised window); closing it sets `fullScreenDismissed` for that meeting. Its **Go full
   screen** button (`reminder:fullscreen`) sets `AXFullScreen` on the meeting app's window through System Events
   (`fullScreenScript`, app remembered as `fullScreenApp` since clicking makes Focus frontmost); this is the only feature
   needing Accessibility, requested via `isTrustedAccessibilityClient(true)`. `meetingState`

@@ -107,6 +107,11 @@ test('browser scripts embed the browsers and the Meet pattern', () => {
   }
 });
 
+test('scanScript reads AXFullScreen only with Accessibility', () => {
+  assert.match(scanScript([], { accessibility: true }), /if \(true\)/);
+  assert.match(scanScript([]), /if \(false\)/);
+});
+
 test('fullScreenScript targets the app and prefers Zoom\'s meeting window', () => {
   const chrome = fullScreenScript('Google Chrome');
   assert.match(chrome, /processes\.byName\("Google Chrome"\)/);

@@ -810,7 +810,7 @@ const recordActivity = async (processes) => {
 
 const watchMeeting = async (processes) => {
   const browsers = blocklist.runningBrowsers(processes);
-  const scan = await run('osascript', ['-l', 'JavaScript', '-e', meeting.scanScript(browsers)], {
+  const scan = await run('osascript', ['-l', 'JavaScript', '-e', meeting.scanScript(browsers, { accessibility: systemPreferences.isTrustedAccessibilityClient(false) })], {
     timeout: BLOCK_SCRIPT_TIMEOUT_MS,
   })
     .then(({ stdout }) => meeting.parseScan(stdout))

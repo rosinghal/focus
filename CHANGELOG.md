@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.13.1] - 2026-11-11
+
+### Fixed
+
+- The meeting full-screen tip no longer shows while the meeting is already full screen on a MacBook with a notch.
+  With Accessibility allowed, Focus asks macOS whether the window is full screen; without it, a window filling the
+  screen below the menu bar counts as full screen.
+
 ## [1.13.0] - 2026-11-11
 
 ### Added
