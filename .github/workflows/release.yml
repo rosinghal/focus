@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build and attach DMGs to, e.g. v1.13.0
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.sha }}
+
+      - id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if gh release view "v$version" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            [ "${{ github.event_name }}" = push ] && echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+          true
+
+      - if: steps.version.outputs.skip != 'true'
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - if: steps.version.outputs.skip != 'true'
+        run: npm ci
+
+      - if: steps.version.outputs.skip != 'true'
+        run: npm test
+
+      - if: steps.version.outputs.skip != 'true'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          npx electron-builder --mac dmg --arm64 --x64 --publish never
+          # electron-builder leaves the arch out of the x64 file name.
+          if [ -f "dist/Focus-$VERSION.dmg" ]; then mv "dist/Focus-$VERSION.dmg" "dist/Focus-$VERSION-x64.dmg"; fi
+          ls dist/*.dmg
+
+      - if: steps.version.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          EXISTS: ${{ steps.version.outputs.exists }}
+        run: |
+          dmgs=("dist/Focus-$VERSION-arm64.dmg" "dist/Focus-$VERSION-x64.dmg")
+          if [ "$EXISTS" = true ]; then
+            gh release upload "v$VERSION" "${dmgs[@]}" --clobber
+            exit 0
+          fi
+          {
+            awk -v head="## [$VERSION]" 'index($0, head) == 1 { found = 1; next } /^## \[/ { found = 0 } found' CHANGELOG.md
+            echo
+            echo "Download **Focus-$VERSION-arm64.dmg** for Apple silicon or **Focus-$VERSION-x64.dmg** for Intel. The app is unsigned: after the first launch, use System Settings › Privacy & Security › **Open Anyway**, or run \`xattr -dr com.apple.quarantine /Applications/Focus.app\`."
+            echo
+            echo "Full changelog: [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)"
+          } > notes.md
+          prerelease=()
+          [ "${VERSION##*.}" != 0 ] && prerelease=(--prerelease)
+          gh release create "v$VERSION" "${dmgs[@]}" --target "$GITHUB_SHA" --title "Focus $VERSION" --notes-file notes.md "${prerelease[@]}"

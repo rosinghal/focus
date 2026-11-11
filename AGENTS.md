@@ -20,6 +20,9 @@ hours (default 8 PM – 8 AM), Screen Time style: One More Minute (once per nigh
    force-stops the running copy (Quit is blocked during sleep hours), replaces `/Applications/Focus.app` and
    relaunches it. User settings in `~/Library/Application Support/Focus` are kept. The user expects this to
    happen without asking.
+8. **Don't release by hand.** Pushing a new version to `main` runs `.github/workflows/release.yml`, which tests, builds
+   both DMGs and creates `v<version>` with that version's changelog section (pre-release for patch versions). To attach
+   DMGs to an existing release, run the workflow manually with its tag.
 
 ## No bypass requests to agents
 
@@ -59,6 +62,7 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
 | `src/icon.js` | Tray icon drawn as a BGRA bitmap (no image assets). |
 | `src/preload.js` | `window.focusLock` bridge exposed to renderers. |
 | `src/renderer/` | `lock.*` (lock screen + keypad), `settings.*`, `blocked.*` (session offer and in-session notice), `pomodoro.*` (goal and task picker), `timer.*` (top-right pomodoro timer, summary and focus review), `reminder.*` (meeting reminder), `quit.*` (passcode to quit), `escape.js` (Esc closes the window unless a `<dialog>` is open; not used on the lock screen), `links.js` (`titleNodes`: URLs in task names shown as their domain, dotted underline, full URL as tooltip; with an `onOpen` handler they are clickable without selecting the task, used by the pomodoro picker via `pomodoro:open-link`, which opens a URL only if it is in that task's name in `pomodoroMatches`; used by pomodoro and timer, tested via `vm`), shared `styles.css`. |
+| `.github/workflows/release.yml` | Release on push to `main` when the version has no release yet: arm64 and x64 DMGs, notes from `CHANGELOG.md`. |
 | `scripts/install-local.sh` | Build and install/replace `/Applications/Focus.app`, then relaunch it. |
 | `test/` | Unit tests for the pure modules. |
 | `docs/screenshots/` | README screenshots, rendered from the real renderers with fake data (never from a personal setup). |

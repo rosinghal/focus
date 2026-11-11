@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.13.2] - 2026-11-11
+
+### Added
+
+- Releases are made by a GitHub Action whenever a new version reaches `main`, with both DMGs attached. Releases since
+  1.7.1 had no DMGs.
+
 ## [1.13.1] - 2026-11-11
 
 ### Fixed
