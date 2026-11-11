@@ -164,7 +164,10 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   `renderer/reminder.html` shows inactive in the top-right (below the timer if open). Returning hides it; closing it
   or **Back to meeting** restarts the minute. While on the meeting and not away, the same window (`?kind=fullscreen`,
   `reminderKind`) suggests full screen when the scan's `frontFullScreen` (a window of the front app the size of a screen,
-  from `CGWindowListCopyWindowInfo`) is false; closing it sets `fullScreenDismissed` for that meeting. `meetingState`
+  from `CGWindowListCopyWindowInfo`) is false; closing it sets `fullScreenDismissed` for that meeting. Its **Go full
+  screen** button (`reminder:fullscreen`) sets `AXFullScreen` on the meeting app's window through System Events
+  (`fullScreenScript`, app remembered as `fullScreenApp` since clicking makes Focus frontmost); this is the only feature
+  needing Accessibility, requested via `isTrustedAccessibilityClient(true)`. `meetingState`
   lives in memory only; **Presenting** (tray checkbox or reminder button) pauses reminders and the tip until the meeting ends. Detection is off while the lock screen is up.
 - System shutdown must not be blocked (`powerMonitor` `shutdown` sets `systemShuttingDown`).
 

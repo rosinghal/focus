@@ -102,6 +102,18 @@ const scanScript = (browsers) => `(() => {
   return JSON.stringify({ front, frontUrl, frontFullScreen, meetBrowsers });
 })()`;
 
+// Setting AXFullScreen through System Events needs Accessibility permission. Zoom's home window may be in front of
+// the meeting, so its meeting window is preferred.
+const fullScreenScript = (appName) => `(() => {
+  const app = Application(${JSON.stringify(appName)});
+  app.activate();
+  const windows = Application('System Events').processes.byName(${JSON.stringify(appName)}).windows();
+  const win = (${JSON.stringify(appName === ZOOM_APP)} && windows.find((w) => /meeting/i.test(w.name() || ''))) || windows[0];
+  if (!win) return '';
+  win.attributes.byName('AXFullScreen').value = true;
+  return 'ok';
+})()`;
+
 // Safari has currentTab; Chromium browsers have activeTabIndex.
 const focusMeetScript = (browsers) => `(() => {
   const meet = ${MEET_URL};
@@ -138,5 +150,6 @@ module.exports = {
   suggestFullScreen,
   reminderKind,
   scanScript,
+  fullScreenScript,
   focusMeetScript,
 };

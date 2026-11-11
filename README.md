@@ -74,7 +74,8 @@ focused minutes, whether it finished, and its focus level and note — is kept i
 
 Turns on by itself while a Zoom meeting runs or a Google Meet room is open in a browser. Spend a minute in another app
 or tab and a small reminder asks you to go back. While you're on the meeting but not full screen, the same corner
-suggests going full screen (⌃⌘F for Meet, ⇧⌘F for Zoom); close it to skip it for that meeting. Presenting? Tick
+suggests going full screen: press ⌃⌘F for Meet or ⇧⌘F for Zoom, or click **Go full screen** (needs Accessibility
+permission, which macOS asks for the first time). Close it to skip it for that meeting. Presenting? Tick
 **Presenting (pause reminders)** in the menu bar.
 
 <br clear="right" />

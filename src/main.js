@@ -87,6 +87,7 @@ let pomodoroWindow = null;
 let timerWindow = null;
 let reminderWindow = null;
 let reminderShown = null;
+let fullScreenApp = null;
 let meetingState = { kind: null, awaySince: 0, presenting: false, fullScreenDismissed: false };
 let meetingBrowsers = [];
 // Every task shown in the window, since searches run as you type and can resolve out of order.
@@ -777,6 +778,17 @@ const backToMeeting = (browsers) => {
   return run('osascript', ['-l', 'JavaScript', '-e', script], { timeout: BLOCK_SCRIPT_TIMEOUT_MS }).catch(() => {});
 };
 
+const goFullScreen = async () => {
+  if (!fullScreenApp) return { ok: false };
+  if (!systemPreferences.isTrustedAccessibilityClient(true)) return { ok: false, reason: 'permission' };
+  const { stdout } = await run('osascript', ['-l', 'JavaScript', '-e', meeting.fullScreenScript(fullScreenApp)], {
+    timeout: BLOCK_SCRIPT_TIMEOUT_MS,
+  }).catch(() => ({ stdout: '' }));
+  if (stdout.trim() !== 'ok') return { ok: false };
+  hideReminder();
+  return { ok: true };
+};
+
 let activityScanning = false;
 
 // Samples the frontmost app and browser tab only while a pomodoro is focusing, so one extra AppleScript each tick.
@@ -813,6 +825,8 @@ const watchMeeting = async (processes) => {
   meetingState = { ...meetingState, awaySince: meeting.awaySince(meetingState.awaySince, { ...meetingState, away }, now) };
   meetingBrowsers = browsers;
   const reminder = meeting.reminderKind(meetingState, scan, now);
+  // Clicking the tip makes Focus frontmost, so remember which app the meeting is in now.
+  if (reminder === 'fullscreen') fullScreenApp = scan.front;
   if (reminder) showReminder(reminder);
   else if (!meetingState.awaySince || reminderShown === 'fullscreen') hideReminder();
 };
@@ -1014,6 +1028,8 @@ const registerIpc = () => {
   ipcMain.handle('reminder:back', (event) => {
     if (isReminderSender(event)) backToMeeting(meetingBrowsers);
   });
+
+  ipcMain.handle('reminder:fullscreen', (event) => (isReminderSender(event) ? goFullScreen() : { ok: false }));
 
   ipcMain.handle('reminder:presenting', (event) => {
     if (isReminderSender(event)) setPresenting(true);

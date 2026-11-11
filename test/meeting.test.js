@@ -12,6 +12,7 @@ const {
   suggestFullScreen,
   reminderKind,
   scanScript,
+  fullScreenScript,
   focusMeetScript,
 } = require('../src/meeting');
 
@@ -104,4 +105,13 @@ test('browser scripts embed the browsers and the Meet pattern', () => {
     assert.match(script, /"Safari"/);
     assert.doesNotThrow(() => new Function(`return ${script}`));
   }
+});
+
+test('fullScreenScript targets the app and prefers Zoom\'s meeting window', () => {
+  const chrome = fullScreenScript('Google Chrome');
+  assert.match(chrome, /processes\.byName\("Google Chrome"\)/);
+  assert.match(chrome, /AXFullScreen/);
+  assert.match(chrome, /\(false && /);
+  assert.match(fullScreenScript('zoom.us'), /\(true && /);
+  assert.doesNotThrow(() => new Function(`return ${chrome}`));
 });
