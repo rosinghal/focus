@@ -9,12 +9,19 @@ const {
   isAway,
   awaySince,
   shouldRemind,
+  suggestFullScreen,
+  reminderKind,
   scanScript,
   focusMeetScript,
 } = require('../src/meeting');
 
 const proc = (name) => ({ pid: 1, path: `/Applications/${name}.app/Contents/MacOS/${name}`, name });
-const scan = (front, frontUrl = null, meetBrowsers = []) => ({ front, frontUrl, meetBrowsers });
+const scan = (front, frontUrl = null, meetBrowsers = [], frontFullScreen = null) => ({
+  front,
+  frontUrl,
+  frontFullScreen,
+  meetBrowsers,
+});
 
 test('MEET_URL matches meeting rooms only', () => {
   assert.equal(MEET_URL.test('https://meet.google.com/abc-defg-hij'), true);
@@ -31,6 +38,8 @@ test('parseScan falls back to an empty scan on bad output', () => {
   assert.deepEqual(parseScan('nope'), NO_SCAN);
   assert.deepEqual(parseScan('{"front":"Slack","meetBrowsers":"x"}'), scan('Slack'));
   assert.deepEqual(parseScan(JSON.stringify(scan('Safari', 'https://a.com', ['Safari']))), scan('Safari', 'https://a.com', ['Safari']));
+  assert.equal(parseScan('{"frontFullScreen":false}').frontFullScreen, false);
+  assert.equal(parseScan('{"frontFullScreen":"no"}').frontFullScreen, null);
 });
 
 test('meetingKind detects a Zoom meeting first, then a Meet tab', () => {
@@ -63,6 +72,30 @@ test('the reminder waits a minute away and pauses while presenting', () => {
   assert.equal(shouldRemind(1000, 1000 + REMINDER_DELAY_MS - 1), false);
   assert.equal(shouldRemind(1000, 1000 + REMINDER_DELAY_MS), true);
   assert.equal(shouldRemind(0, 1e12), false);
+});
+
+test('full screen is suggested on the meeting, not while presenting, dismissed or already full screen', () => {
+  const room = 'https://meet.google.com/abc-defg-hij';
+  const meet = { kind: 'meet', presenting: false, fullScreenDismissed: false };
+  const onRoom = (fullScreen) => scan('Google Chrome', room, ['Google Chrome'], fullScreen);
+  assert.equal(suggestFullScreen(meet, onRoom(false)), true);
+  assert.equal(suggestFullScreen(meet, onRoom(true)), false);
+  assert.equal(suggestFullScreen(meet, onRoom(null)), false);
+  assert.equal(suggestFullScreen({ ...meet, presenting: true }, onRoom(false)), false);
+  assert.equal(suggestFullScreen({ ...meet, fullScreenDismissed: true }, onRoom(false)), false);
+  assert.equal(suggestFullScreen(meet, scan('Google Chrome', 'https://github.com', ['Google Chrome'], false)), false);
+  assert.equal(suggestFullScreen(meet, scan('Electron', null, ['Google Chrome'], false)), false);
+  assert.equal(suggestFullScreen({ ...meet, kind: 'zoom' }, scan('zoom.us', null, [], false)), true);
+  assert.equal(suggestFullScreen({ ...meet, kind: null }, onRoom(false)), false);
+});
+
+test('reminderKind puts the away reminder before the full-screen tip', () => {
+  const room = scan('Google Chrome', 'https://meet.google.com/abc-defg-hij', ['Google Chrome'], false);
+  const state = { kind: 'meet', presenting: false, fullScreenDismissed: false, awaySince: 0 };
+  assert.equal(reminderKind(state, room, 5000), 'fullscreen');
+  assert.equal(reminderKind({ ...state, awaySince: 1000 }, room, 2000), null);
+  assert.equal(reminderKind({ ...state, awaySince: 1000 }, room, 1000 + REMINDER_DELAY_MS), 'away');
+  assert.equal(reminderKind({ ...state, presenting: true }, room, 5000), null);
 });
 
 test('browser scripts embed the browsers and the Meet pattern', () => {

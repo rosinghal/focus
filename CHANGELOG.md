@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.12.0] - 2026-11-11
+
+### Added
+
+- Meeting mode suggests going full screen while you're on the meeting and not presenting (⌃⌘F for Google Meet, ⇧⌘F
+  for Zoom). Closing the tip hides it for the rest of that meeting.
+
 ## [1.11.2] - 2026-11-11
 
 ### Fixed

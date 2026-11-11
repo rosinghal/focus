@@ -162,8 +162,10 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   meeting (`scanScript`, which also reports the front app and its front tab). Being in another app (or another tab,
   for Meet) is "away"; Focus's own windows and a failed scan are not. After `REMINDER_DELAY_MS` away,
   `renderer/reminder.html` shows inactive in the top-right (below the timer if open). Returning hides it; closing it
-  or **Back to meeting** restarts the minute. `meetingState` lives in memory only; **Presenting** (tray checkbox or
-  reminder button) pauses reminders until the meeting ends. Detection is off while the lock screen is up.
+  or **Back to meeting** restarts the minute. While on the meeting and not away, the same window (`?kind=fullscreen`,
+  `reminderKind`) suggests full screen when the scan's `frontFullScreen` (a window of the front app the size of a screen,
+  from `CGWindowListCopyWindowInfo`) is false; closing it sets `fullScreenDismissed` for that meeting. `meetingState`
+  lives in memory only; **Presenting** (tray checkbox or reminder button) pauses reminders and the tip until the meeting ends. Detection is off while the lock screen is up.
 - System shutdown must not be blocked (`powerMonitor` `shutdown` sets `systemShuttingDown`).
 
 ## Testing the real app

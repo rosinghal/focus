@@ -86,7 +86,8 @@ let quitWindow = null;
 let pomodoroWindow = null;
 let timerWindow = null;
 let reminderWindow = null;
-let meetingState = { kind: null, awaySince: 0, presenting: false };
+let reminderShown = null;
+let meetingState = { kind: null, awaySince: 0, presenting: false, fullScreenDismissed: false };
 let meetingBrowsers = [];
 // Every task shown in the window, since searches run as you type and can resolve out of order.
 let pomodoroMatches = new Map();
@@ -722,8 +723,9 @@ const reminderBounds = () => {
   };
 };
 
-const showReminder = () => {
-  if (reminderWindow && !reminderWindow.isDestroyed()) return;
+const showReminder = (kind) => {
+  if (reminderWindow && !reminderWindow.isDestroyed() && reminderShown === kind) return;
+  hideReminder();
   const win = new BrowserWindow({
     ...reminderBounds(),
     show: false,
@@ -738,20 +740,26 @@ const showReminder = () => {
     webPreferences: { preload: PRELOAD, contextIsolation: true, sandbox: true },
   });
   reminderWindow = win;
+  reminderShown = kind;
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  // Closing it yourself snoozes the reminder for another minute away.
+  // Closing the away reminder yourself snoozes it for another minute away; closing the tip ends it for this meeting.
   win.on('closed', () => {
     if (reminderWindow !== win) return;
     reminderWindow = null;
-    meetingState = { ...meetingState, awaySince: meetingState.awaySince && Date.now() };
+    reminderShown = null;
+    meetingState =
+      kind === 'fullscreen'
+        ? { ...meetingState, fullScreenDismissed: true }
+        : { ...meetingState, awaySince: meetingState.awaySince && Date.now() };
   });
   win.once('ready-to-show', () => win.showInactive());
-  win.loadFile(path.join(RENDERER, 'reminder.html'));
+  win.loadFile(path.join(RENDERER, 'reminder.html'), { query: { kind } });
 };
 
 const hideReminder = () => {
   const win = reminderWindow;
   reminderWindow = null;
+  reminderShown = null;
   win?.destroy();
 };
 
@@ -797,15 +805,16 @@ const watchMeeting = async (processes) => {
     .catch(() => meeting.NO_SCAN);
   const kind = lockWindows.length ? null : meeting.meetingKind(processes, scan);
   if (kind !== meetingState.kind) {
-    meetingState = { kind, awaySince: 0, presenting: false };
+    meetingState = { kind, awaySince: 0, presenting: false, fullScreenDismissed: false };
     updateTray(new Date());
   }
   const now = Date.now();
   const away = meeting.isAway(kind, scan);
   meetingState = { ...meetingState, awaySince: meeting.awaySince(meetingState.awaySince, { ...meetingState, away }, now) };
   meetingBrowsers = browsers;
-  if (meeting.shouldRemind(meetingState.awaySince, now)) showReminder();
-  else if (!meetingState.awaySince) hideReminder();
+  const reminder = meeting.reminderKind(meetingState, scan, now);
+  if (reminder) showReminder(reminder);
+  else if (!meetingState.awaySince || reminderShown === 'fullscreen') hideReminder();
 };
 
 const enforceBlocklist = async () => {
@@ -993,7 +1002,13 @@ const registerIpc = () => {
   });
 
   ipcMain.handle('reminder:status', (event) =>
-    isReminderSender(event) && meetingState.kind ? { meeting: meeting.MEETING_NAMES[meetingState.kind] } : null,
+    isReminderSender(event) && meetingState.kind
+      ? {
+          meeting: meeting.MEETING_NAMES[meetingState.kind],
+          kind: reminderShown,
+          keys: meeting.FULL_SCREEN_KEYS[meetingState.kind],
+        }
+      : null,
   );
 
   ipcMain.handle('reminder:back', (event) => {

@@ -73,7 +73,9 @@ focused minutes, whether it finished, and its focus level and note — is kept i
 <img src="docs/screenshots/reminder.png" alt="Meeting reminder" width="300" align="right" />
 
 Turns on by itself while a Zoom meeting runs or a Google Meet room is open in a browser. Spend a minute in another app
-or tab and a small reminder asks you to go back. Presenting? Tick **Presenting (pause reminders)** in the menu bar.
+or tab and a small reminder asks you to go back. While you're on the meeting but not full screen, the same corner
+suggests going full screen (⌃⌘F for Meet, ⇧⌘F for Zoom); close it to skip it for that meeting. Presenting? Tick
+**Presenting (pause reminders)** in the menu bar.
 
 <br clear="right" />
 
