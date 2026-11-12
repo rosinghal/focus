@@ -220,6 +220,7 @@ test('store round-trips config, state, history and pomodoros', () => {
     pomodoroSummary: null,
     sessionLog: [],
     morningPromptedAt: 0,
+    today: null,
   });
   assert.deepEqual(store.loadHistory(), []);
   store.saveHistory([{ type: 'grace', at: 1 }]);
@@ -231,7 +232,7 @@ test('store round-trips config, state, history and pomodoros', () => {
   store.saveConfig(configured());
   assert.deepEqual(store.loadConfig(), withDefaults(configured()));
 
-  const saved = { bypassUntil: 123, graceUsedAt: 45, trackingSince: 6, sessionUntil: 7, sessionKind: 'kid', kidUsedAt: 8, hiddenApps: ['Notes'], pomodoro: null, pomodoroSummary: null, sessionLog: [], morningPromptedAt: 9 };
+  const saved = { bypassUntil: 123, graceUsedAt: 45, trackingSince: 6, sessionUntil: 7, sessionKind: 'kid', kidUsedAt: 8, hiddenApps: ['Notes'], pomodoro: null, pomodoroSummary: null, sessionLog: [], morningPromptedAt: 9, today: { at: 10, ms: { none: 11 }, meetings: 0, inMeeting: false } };
   store.saveState(saved);
   assert.deepEqual(store.loadState(), saved);
   fs.rmSync(dir, { recursive: true });

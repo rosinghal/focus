@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'" />
+    <title>Today's Report</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="report">
+      <h1>Today</h1>
+      <p class="muted" id="date"></p>
+      <div class="report-total">
+        <span class="report-big" id="active"></span>
+        <span class="muted">active</span>
+      </div>
+      <ul class="report-rows" id="rows"></ul>
+      <section class="hidden" id="tasks-section">
+        <h2>Pomodoro tasks</h2>
+        <ul class="report-tasks" id="tasks"></ul>
+      </section>
+    </main>
+    <script src="escape.js"></script>
+    <script src="links.js"></script>
+    <script src="report.js"></script>
+  </body>
+</html>

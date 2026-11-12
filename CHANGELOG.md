@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.14.0] - 2026-11-12
+
+### Added
+
+- **Today's Report…** in the menu bar: today's active time, pomodoros, breaks, meetings, Entertainment and Kid mode,
+  sleep-hours unlocks, and time active outside every mode.
+
 ## [1.13.2] - 2026-11-11
 
 ### Added

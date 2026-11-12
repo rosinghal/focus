@@ -94,4 +94,5 @@ module.exports = {
   formatTime,
   countdownEnd,
   formatCountdown,
+  ACTIVE_IDLE_SECONDS,
 };

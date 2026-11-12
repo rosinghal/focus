@@ -82,6 +82,17 @@ permission, which macOS asks for the first time). Close it to skip it for that m
 
 While a mode, pomodoro or sleep-hours unlock is active, the menu bar shows a countdown next to the icon.
 
+### Today's report
+
+<img src="docs/screenshots/report.png" alt="Today's report" width="300" align="right" />
+
+**Today's Report…** in the menu bar shows how today went: time active at the Mac, pomodoro focus (count, stopped
+ones, average focus level and tasks), breaks, meetings, Entertainment and Kid mode, sleep-hours unlocks, and time
+active outside every mode. Time outside a mode counts only while you use the Mac; time asleep or locked isn't
+counted. It starts from zero each day.
+
+<br clear="right" />
+
 ## Install
 
 Focus is macOS only. Download the `.dmg` for your Mac from the

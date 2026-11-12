@@ -209,3 +209,19 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .timer-actions .error { font-size: 12px; flex-basis: 100%; }
 .reminder .reminder-title { margin: 4px 0 2px; font-size: 16px; font-weight: 600; }
 .reminder .muted { font-size: 13px; }
+
+/* Today's report */
+.report { padding: 24px 28px; }
+.report h1 { margin: 0; font-size: 22px; }
+.report h1 + .muted { margin: 2px 0 0; font-size: 13px; }
+.report h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 20px 0 8px; }
+.report-total { display: flex; align-items: baseline; gap: 8px; margin: 16px 0; }
+.report-big { font-size: 34px; font-weight: 300; font-variant-numeric: tabular-nums; }
+.report-rows,
+.report-tasks { list-style: none; margin: 0; padding: 0; }
+.report-rows li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 14px; }
+.report-rows li span { display: flex; flex-direction: column; gap: 2px; }
+.report-rows li small { font-size: 12px; }
+.report-rows li strong { font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.report-rows li.empty { color: var(--muted); }
+.report-tasks li { padding: 3px 0; font-size: 13px; overflow-wrap: anywhere; }

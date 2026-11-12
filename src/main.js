@@ -25,6 +25,7 @@ const {
   formatTime,
   countdownEnd,
   formatCountdown,
+  ACTIVE_IDLE_SECONDS,
 } = require('./schedule');
 const QRCode = require('qrcode');
 const unlock = require('./unlock');
@@ -47,6 +48,7 @@ const clickup = require('./clickup');
 const activity = require('./activity');
 const ai = require('./ai');
 const meeting = require('./meeting');
+const report = require('./report');
 
 const TICK_MS = 5000;
 const TITLE_TICK_MS = 1000;
@@ -70,6 +72,7 @@ let state = {
   pomodoroSummary: null,
   sessionLog: [],
   morningPromptedAt: 0,
+  today: null,
 };
 let history = [];
 let pomodoroLog = [];
@@ -86,6 +89,7 @@ let quitWindow = null;
 let pomodoroWindow = null;
 let timerWindow = null;
 let reminderWindow = null;
+let reportWindow = null;
 let reminderShown = null;
 let fullScreenApp = null;
 let meetingState = { kind: null, awaySince: 0, presenting: false, fullScreenDismissed: false };
@@ -115,6 +119,7 @@ const isQuitSender = (event) => quitWindow?.webContents === event.sender;
 const isPomodoroSender = (event) => pomodoroWindow?.webContents === event.sender;
 const isTimerSender = (event) => timerWindow?.webContents === event.sender;
 const isReminderSender = (event) => reminderWindow?.webContents === event.sender;
+const isReportSender = (event) => reportWindow?.webContents === event.sender;
 const inSession = () => blocklist.isSessionActive(Date.now(), state.sessionUntil);
 const isKidSession = () => state.sessionKind === 'kid';
 const sessionRules = () => blocklist.sessionRules(state.sessionKind, config);
@@ -272,6 +277,53 @@ const openSettings = () => {
   settingsWindow.on('closed', () => (settingsWindow = null));
   settingsWindow.loadFile(path.join(RENDERER, 'settings.html'));
   app.focus({ steal: true });
+};
+
+const openReport = () => {
+  if (reportWindow && !reportWindow.isDestroyed()) {
+    reportWindow.focus();
+    return;
+  }
+  reportWindow = new BrowserWindow({
+    width: 400,
+    height: 600,
+    title: "Today's Report",
+    resizable: false,
+    maximizable: false,
+    backgroundColor: '#0b1020',
+    webPreferences: { preload: PRELOAD, contextIsolation: true, sandbox: true },
+  });
+  reportWindow.on('closed', () => (reportWindow = null));
+  reportWindow.loadFile(path.join(RENDERER, 'report.html'));
+  app.focus({ steal: true });
+};
+
+const currentModes = (now) => [
+  ...(focusing() ? ['focus'] : pomodoroActive() ? ['break'] : []),
+  ...(inSession() ? [isKidSession() ? 'kid' : 'entertainment'] : []),
+  ...(meetingState.kind ? ['meeting'] : []),
+  ...(isInBlockWindow(now, config.schedule) && isBypassActive(now.getTime(), state.bypassUntil) ? ['unlocked'] : []),
+];
+
+const trackToday = (now) => {
+  const locked = lockWindows.length > 0;
+  const today = report.trackTick(state.today, {
+    now: now.getTime(),
+    modes: locked ? [] : currentModes(now),
+    active: !locked && powerMonitor.getSystemIdleTime() < ACTIVE_IDLE_SECONDS,
+  });
+  updateState({ today });
+};
+
+const todayReport = () => {
+  const now = Date.now();
+  return report.dailyReport({
+    day: state.today,
+    pomodoroLog,
+    sessionLog: state.sessionLog,
+    runningFocusMs: focusing() ? pomodoro.focusedMs(state.pomodoro, now) : 0,
+    now,
+  });
 };
 
 const openQuit = () => {
@@ -578,6 +630,7 @@ const updateTray = (now) => {
       { type: 'separator' },
       ...pomodoroMenu(),
       { type: 'separator' },
+      { label: "Today's Report…", click: openReport },
       { label: 'Settings…', enabled: editable, click: openSettings },
       { type: 'separator' },
       { label: editable ? 'Quit…' : 'Quit (disabled during sleep hours)', enabled: editable, click: () => app.quit() },
@@ -866,6 +919,7 @@ const tick = () => {
     repairLock();
   } else hideLock();
   warnBeforeRelock(now);
+  trackToday(now);
   updateTray(now);
   updateTrayTitle();
   enforceBlocklist();
@@ -1163,6 +1217,8 @@ const registerIpc = () => {
     await whatsappClient.logout();
     return { ok: true };
   });
+
+  ipcMain.handle('report:status', (event) => (isReportSender(event) ? todayReport() : null));
 
   ipcMain.handle('settings:get', (event) => {
     if (!isSettingsSender(event)) return null;
