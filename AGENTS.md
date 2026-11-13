@@ -178,9 +178,11 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
 - **Today's Report…** (tray, always enabled) opens `renderer/report.html`, which polls `report:status` every 5 s.
   Each tick `trackToday` adds the time since the last tick (`trackTick`; gaps over `MAX_TICK_GAP_MS`, e.g. sleep,
   count nothing) to every active mode (`focus`, `break`, `entertainment`, `kid`, `meeting`, `unlocked`), or to
-  `none` when no mode runs and the user is active (idle under `ACTIVE_IDLE_SECONDS`), plus `active`. Nothing counts
-  while the lock screen is up. It lives in `state.today` and resets on a new calendar day. `dailyReport` adds pomodoro
-  counts and focus from `pomodoros.json` (plus the running focus) and Entertainment sessions from `state.sessionLog`.
+  `none` when no mode runs and the user is active (idle under `ACTIVE_IDLE_SECONDS`), plus `active`. Once idle for
+  `AWAY_IDLE_SECONDS` (5 min) only `meeting` counts. Nothing counts while Focus's lock screen or the macOS lock screen
+  is up (`getSystemIdleState` is `locked`). It lives in `state.today` and resets on a new calendar day. `dailyReport` takes every minute
+  figure from `state.today`, and pomodoro counts, reviews and tasks from `pomodoros.json` and the Entertainment session
+  count from `state.sessionLog`.
 - System shutdown must not be blocked (`powerMonitor` `shutdown` sets `systemShuttingDown`).
 
 ## Testing the real app

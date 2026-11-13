@@ -306,11 +306,11 @@ const currentModes = (now) => [
 ];
 
 const trackToday = (now) => {
-  const locked = lockWindows.length > 0;
   const today = report.trackTick(state.today, {
     now: now.getTime(),
-    modes: locked ? [] : currentModes(now),
-    active: !locked && powerMonitor.getSystemIdleTime() < ACTIVE_IDLE_SECONDS,
+    modes: currentModes(now),
+    idleSeconds: powerMonitor.getSystemIdleTime(),
+    screenLocked: lockWindows.length > 0 || powerMonitor.getSystemIdleState(ACTIVE_IDLE_SECONDS) === 'locked',
   });
   updateState({ today });
 };
@@ -321,7 +321,6 @@ const todayReport = () => {
     day: state.today,
     pomodoroLog,
     sessionLog: state.sessionLog,
-    runningFocusMs: focusing() ? pomodoro.focusedMs(state.pomodoro, now) : 0,
     now,
   });
 };

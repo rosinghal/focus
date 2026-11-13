@@ -89,8 +89,8 @@ While a mode, pomodoro or sleep-hours unlock is active, the menu bar shows a cou
 
 **Today's Report…** in the menu bar shows how today went: time active at the Mac, pomodoro focus (count, stopped
 ones, average focus level and tasks), breaks, meetings, Entertainment and Kid mode, sleep-hours unlocks, and time
-active outside every mode. Time outside a mode counts only while you use the Mac; time asleep or locked isn't
-counted. It starts from zero each day.
+active outside every mode. Time outside a mode counts only while you use the Mac. Time asleep, behind the lock
+screen, or after 5 minutes away isn't counted (except a meeting you're listening to). It starts from zero each day.
 
 <br clear="right" />
 

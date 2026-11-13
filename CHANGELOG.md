@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.15.1] - 2026-11-13
+
+### Fixed
+
+- Today's Report no longer counts time while the Mac sleeps, the macOS lock screen is up, or you've been away for
+  5 minutes (a meeting still counts). Focus and Entertainment minutes come from tracked time, not start and end times.
+
 ## [1.15.0] - 2026-11-13
 
 ### Added
