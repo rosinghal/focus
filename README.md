@@ -53,7 +53,8 @@ works. End it early from the menu bar (it still counts as today's use).
 searches the tasks assigned to you as you type and offers a new one (assigned to you, due today): **Create** just adds
 it to ClickUp, **Create and start** also starts the pomodoro. The star on a task sets or clears its high priority in
 ClickUp, and tasks are listed by priority. **+1** after a due date moves the task to tomorrow, and **↗** opens it in
-the browser. `#hashtags` in a new task's goal become ClickUp tags (`Write notes #docs`). Links in
+the browser. **✓** marks the task complete in ClickUp and drops it from the list, and **↻** reloads the list from
+ClickUp. `#hashtags` in a new task's goal become ClickUp tags (`Write notes #docs`). Links in
 task names show as their domain with a dotted underline (hover for the full URL; click one in the picker to open it). You get 25 minutes of focus, then a 5-minute break; when the break
 ends, the pomodoro window opens again so you can start the next one. It also opens the first time
 you use the Mac after sleep hours end, to start the day with a pomodoro. A small always-on-top window shows the time left and, when it ends, a summary with **Mark task complete**. If you save a

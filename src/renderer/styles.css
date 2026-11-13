@@ -177,6 +177,12 @@ textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .task .create { align-self: center; padding: 4px 10px; font-size: 12px; }
 .task .star { align-self: center; padding: 0 4px; border: none; background: none; color: var(--muted); font-size: 18px; line-height: 1; }
 .task .star.starred { color: var(--warn); }
+.task .complete { align-self: center; padding: 0 4px; border: none; background: none; color: var(--muted); font-size: 16px; line-height: 1; }
+.task .complete:hover:not(:disabled) { color: var(--accent); }
+.pomodoro .search-row { display: flex; align-items: center; gap: 8px; }
+.pomodoro .search-row .search-status { flex: 1; }
+.pomodoro #refresh { padding: 0 4px; border: none; background: none; color: var(--muted); font-size: 16px; line-height: 1; }
+.pomodoro #refresh:hover:not(:disabled) { color: var(--accent); }
 .task .due { color: var(--muted); }
 .task .due.overdue { color: var(--danger); }
 .task .tag { margin-left: 6px; padding: 0 5px; border-radius: 4px; background: var(--border); color: var(--text); }

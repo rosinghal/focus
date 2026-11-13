@@ -41,7 +41,7 @@ const details = (task) => {
   return small;
 };
 
-const option = (value, title, detail, checked, action, link, onOpenLink) => {
+const option = (value, title, detail, checked, actions, link, onOpenLink) => {
   const label = document.createElement('label');
   label.className = 'task';
   const radio = Object.assign(document.createElement('input'), { type: 'radio', name: 'task', value, checked });
@@ -50,7 +50,7 @@ const option = (value, title, detail, checked, action, link, onOpenLink) => {
   strong.append(...titleNodes(title, onOpenLink));
   if (link) strong.append(link);
   text.append(strong, detail);
-  label.append(radio, text, ...(action ? [action] : []));
+  label.append(radio, text, ...actions);
   return label;
 };
 
@@ -68,6 +68,9 @@ const starButton = (task) => {
   button.addEventListener('click', () => toggleStar(button, task));
   return button;
 };
+
+const completeButton = (task) =>
+  iconButton('complete', '✓\uFE0E', 'Mark complete in ClickUp', (button) => complete(button, task));
 
 const openButton = (task) =>
   iconButton('open', '↗', 'Open in ClickUp', () => window.focusLock.openPomodoroTask(task.id));
@@ -103,11 +106,17 @@ const renderTasks = (tasks, preferred = selected()) => {
   const keep = tasks.some((task) => task.id === preferred) || (offerNew && preferred === NEW_TASK) ? preferred : fallback;
   $('tasks').replaceChildren(
     ...tasks.map((task) =>
-      option(task.id, task.name, details(task), task.id === keep, starButton(task), openButton(task), (url) =>
-        window.focusLock.openPomodoroLink(task.id, url),
+      option(
+        task.id,
+        task.name,
+        details(task),
+        task.id === keep,
+        [completeButton(task), starButton(task)],
+        openButton(task),
+        (url) => window.focusLock.openPomodoroLink(task.id, url),
       ),
     ),
-    ...(offerNew ? [option(NEW_TASK, `“${goalName()}”`, newTaskDetail(), keep === NEW_TASK, createButton())] : []),
+    ...(offerNew ? [option(NEW_TASK, `“${goalName()}”`, newTaskDetail(), keep === NEW_TASK, [createButton()])] : []),
   );
   updateStartLabel();
 };
@@ -119,20 +128,22 @@ const showTasks = (tasks) => {
   $('search-status').textContent = searchStatus(tasks);
 };
 
-const runSearch = async (id) => {
-  const result = await window.focusLock.searchTasks(hasGoal() ? goalName() : '');
+const runSearch = async (id, fresh) => {
+  const result = await window.focusLock.searchTasks(hasGoal() ? goalName() : '', fresh);
   if (id !== searchId) return;
   pendingSearch = null;
+  $('refresh').disabled = false;
   $('error').textContent = result.ok ? '' : result.error;
   if (result.ok) showTasks(result.tasks);
   else $('search-status').textContent = '';
 };
 
-const search = () => {
+const search = (fresh = false) => {
   clearTimeout(searchTimer);
   searchTimer = null;
   $('search-status').textContent = hasGoal() ? 'Searching…' : 'Loading tasks due today…';
-  pendingSearch = runSearch(++searchId);
+  $('refresh').disabled = true;
+  pendingSearch = runSearch(++searchId, fresh);
   return pendingSearch;
 };
 
@@ -183,6 +194,20 @@ const toggleStar = async (button, task) => {
   renderTasks(shownTasks);
 };
 
+const complete = async (button, task) => {
+  button.disabled = true;
+  $('error').textContent = '';
+  const result = await window.focusLock.completePomodoroTask(task.id);
+  button.disabled = false;
+  if (!result.ok) {
+    $('error').textContent = result.error;
+    return;
+  }
+  shownTasks = shownTasks.filter((shown) => shown.id !== task.id);
+  renderTasks(shownTasks);
+  $('search-status').textContent = 'Task completed in ClickUp';
+};
+
 const postpone = async (button, task) => {
   button.disabled = true;
   $('error').textContent = '';
@@ -228,6 +253,7 @@ const init = async () => {
   $('goal-form').classList.remove('hidden');
   $('goal').addEventListener('input', onGoalInput);
   $('tasks').addEventListener('change', updateStartLabel);
+  $('refresh').addEventListener('click', () => search(true));
   $('goal-form').addEventListener('submit', (event) => {
     event.preventDefault();
     start();

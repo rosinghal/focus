@@ -18,7 +18,10 @@
         <h1>What's the goal?</h1>
         <p class="muted" id="goal-hint"></p>
         <input type="text" id="goal" maxlength="200" autofocus />
-        <p class="muted search-status" id="search-status"></p>
+        <div class="search-row">
+          <p class="muted search-status" id="search-status"></p>
+          <button type="button" id="refresh" title="Refresh tasks" aria-label="Refresh tasks">↻</button>
+        </div>
         <div class="task-list" id="tasks"></div>
         <p class="error" id="error"></p>
         <div class="actions">

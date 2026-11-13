@@ -176,6 +176,7 @@ const createClient = ({ token, teamId, listId }, fetchImpl = fetch, clock = Date
   };
 
   return {
+    refresh: () => cache.clear(),
     // Without a searchable goal, it lists what is due today or overdue.
     searchTasks: async (query, now = new Date()) =>
       words(query).length

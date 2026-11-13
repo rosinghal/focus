@@ -1128,11 +1128,13 @@ const registerIpc = () => {
     return { clickupReady: clickupReady(), minutes: pomodoro.FOCUS_MS / 60000 };
   });
 
-  ipcMain.handle('pomodoro:search', async (event, query) => {
+  ipcMain.handle('pomodoro:search', async (event, query, fresh) => {
     if (!isPomodoroSender(event) || !clickupReady()) return { ok: false, error: CLICKUP_SETUP_ERROR };
     const now = new Date();
     try {
-      const tasks = await clickupFor(config).searchTasks(String(query ?? ''), now);
+      const client = clickupFor(config);
+      if (fresh) client.refresh();
+      const tasks = await client.searchTasks(String(query ?? ''), now);
       tasks.forEach((task) => pomodoroMatches.set(task.id, task));
       return { ok: true, tasks: tasks.map((task) => clickup.toListItem(task, now)) };
     } catch {
@@ -1189,6 +1191,25 @@ const registerIpc = () => {
     } catch {
       return { ok: false, error: 'Could not change the priority in ClickUp. Try again.' };
     }
+  });
+
+  ipcMain.handle('pomodoro:complete', async (event, taskId) => {
+    if (!isPomodoroSender(event) || !clickupReady()) return { ok: false, error: CLICKUP_SETUP_ERROR };
+    const task = pomodoroMatches.get(taskId);
+    if (!task) return { ok: false, error: 'Pick a task from the list.' };
+    try {
+      await clickupFor(config).completeTask(task.id);
+    } catch (error) {
+      return {
+        ok: false,
+        error:
+          error.message === 'no-closing-status'
+            ? 'Its list has no closed status.'
+            : "Couldn't update ClickUp. Try again.",
+      };
+    }
+    pomodoroMatches.delete(task.id);
+    return { ok: true };
   });
 
   ipcMain.handle('pomodoro:create', async (event, name) => {

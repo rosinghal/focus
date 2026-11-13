@@ -3,6 +3,12 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.15.0] - 2026-11-13
+
+### Added
+
+- A **✓** on each task in the pomodoro picker marks it complete in ClickUp, and **↻** reloads the task list.
+
 ## [1.14.0] - 2026-11-12
 
 ### Added

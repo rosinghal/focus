@@ -240,6 +240,9 @@ test('the task list is reused for a minute and refetched after a new task', asyn
   assert.equal(pages(), 3);
   await client.searchTasks('report');
   assert.equal(pages(), 3);
+  client.refresh();
+  await client.searchTasks('report');
+  assert.equal(pages(), 4);
 });
 
 test('a failed fetch is not cached', async () => {
