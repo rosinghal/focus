@@ -67,6 +67,7 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
 | `.github/workflows/release.yml` | Release on push to `main` when the version has no release yet: arm64 and x64 DMGs, notes from `CHANGELOG.md`. |
 | `scripts/install-local.sh` | Build and install/replace `/Applications/Focus.app`, then relaunch it. |
 | `test/` | Unit tests for the pure modules. |
+| `docs/android.md` | Proposed Android app features and constraints (roadmap only, nothing built). |
 | `docs/screenshots/` | README screenshots, rendered from the real renderers with fake data (never from a personal setup). |
 
 ## Conventions
