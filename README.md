@@ -172,7 +172,8 @@ npm test           # unit tests, once
 ```
 
 Plain CommonJS, no build step. See [AGENTS.md](AGENTS.md) for the layout, conventions and behaviour that must hold, and
-[CHANGELOG.md](CHANGELOG.md) for release history. To try it outside your own settings, launch with a throwaway
+[CHANGELOG.md](CHANGELOG.md) for release history. Proposed Android features are in
+[docs/android.md](docs/android.md). To try it outside your own settings, launch with a throwaway
 `--user-data-dir`. `FOCUS_WHATSAPP_DRY_RUN=1` prints WhatsApp codes instead of sending them.
 
 ## License
