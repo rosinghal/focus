@@ -33,6 +33,7 @@ const otp = require('./otp');
 const whatsapp = require('./whatsapp');
 const { isConfigured, applySettings, restrictionChanges, toPublicSettings } = require('./config');
 const { createStore } = require('./store');
+const placement = require('./placement');
 const {
   createUnlockEvent,
   recordEvent,
@@ -261,6 +262,10 @@ const relockAfterWake = () =>
     tick();
   }, WAKE_SETTLE_MS);
 
+const activeDisplay = () => screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+
+const onActiveDisplay = (size) => placement.centered(activeDisplay().workArea, size);
+
 const openSettings = () => {
   if (!settingsEditable()) return;
   if (settingsWindow && !settingsWindow.isDestroyed()) {
@@ -268,8 +273,7 @@ const openSettings = () => {
     return;
   }
   settingsWindow = new BrowserWindow({
-    width: 480,
-    height: 620,
+    ...onActiveDisplay({ width: 480, height: 620 }),
     title: 'Focus Settings',
     resizable: false,
     webPreferences: { preload: PRELOAD, contextIsolation: true, sandbox: true },
@@ -285,8 +289,7 @@ const openReport = () => {
     return;
   }
   reportWindow = new BrowserWindow({
-    width: 400,
-    height: 600,
+    ...onActiveDisplay({ width: 400, height: 600 }),
     title: "Today's Report",
     resizable: false,
     maximizable: false,
@@ -336,8 +339,7 @@ const openQuit = () => {
     return;
   }
   quitWindow = new BrowserWindow({
-    width: 360,
-    height: 320,
+    ...onActiveDisplay({ width: 360, height: 320 }),
     title: 'Quit Focus',
     resizable: false,
     minimizable: false,
@@ -359,8 +361,7 @@ const openPomodoro = () => {
   }
   pomodoroMatches = new Map();
   pomodoroWindow = new BrowserWindow({
-    width: 440,
-    height: 600,
+    ...onActiveDisplay({ width: 440, height: 600 }),
     title: 'Pomodoro',
     resizable: false,
     minimizable: false,
@@ -390,15 +391,8 @@ let timerHeight = 108;
 
 const timerView = () => pomodoro.timerView(state.pomodoro, state.pomodoroSummary, Date.now());
 
-const timerBounds = () => {
-  const { workArea } = screen.getPrimaryDisplay();
-  return {
-    x: workArea.x + workArea.width - TIMER_WIDTH - TIMER_MARGIN,
-    y: workArea.y + TIMER_MARGIN,
-    width: TIMER_WIDTH,
-    height: timerHeight,
-  };
-};
+const timerBounds = () =>
+  placement.topRight(activeDisplay().workArea, { width: TIMER_WIDTH, height: timerHeight }, TIMER_MARGIN);
 
 // Reuses the open timer window so a new pomodoro replaces what it shows.
 const showTimer = () => {
@@ -655,8 +649,7 @@ const showBlockedWindow = (query) => {
   }
   blockedWindow?.destroy();
   blockedWindow = new BrowserWindow({
-    width: 420,
-    height: 330,
+    ...onActiveDisplay({ width: 420, height: 330 }),
     title: 'Focus',
     resizable: false,
     minimizable: false,
@@ -767,13 +760,17 @@ const enforceTabs = async (processes, session, offer) => {
 const REMINDER_SIZE = { width: 300, height: 124 };
 
 const reminderBounds = () => {
-  const { workArea } = screen.getPrimaryDisplay();
   const below = timerWindow && !timerWindow.isDestroyed() ? timerWindow.getBounds() : null;
-  return {
-    ...REMINDER_SIZE,
-    x: workArea.x + workArea.width - REMINDER_SIZE.width - TIMER_MARGIN,
-    y: below ? below.y + below.height + TIMER_MARGIN : workArea.y + TIMER_MARGIN,
-  };
+  return placement.topRight(activeDisplay().workArea, REMINDER_SIZE, TIMER_MARGIN, below);
+};
+
+const moveTo = (win, bounds) => {
+  if (win && !win.isDestroyed() && !placement.sameBounds(win.getBounds(), bounds)) win.setBounds(bounds);
+};
+
+const followCursor = () => {
+  if (timerWindow && !timerWindow.isDestroyed()) moveTo(timerWindow, timerBounds());
+  if (reminderWindow && !reminderWindow.isDestroyed()) moveTo(reminderWindow, reminderBounds());
 };
 
 const showReminder = (kind) => {
@@ -923,6 +920,7 @@ const tick = () => {
   updateTrayTitle();
   enforceBlocklist();
   promptMorningPomodoro(now);
+  followCursor();
 };
 
 const createTray = () => {

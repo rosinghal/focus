@@ -57,7 +57,7 @@ the browser. **✓** marks the task complete in ClickUp and drops it from the li
 ClickUp. `#hashtags` in a new task's goal become ClickUp tags (`Write notes #docs`). Links in
 task names show as their domain with a dotted underline (hover for the full URL; click one in the picker to open it). You get 25 minutes of focus, then a 5-minute break; when the break
 ends, the pomodoro window opens again so you can start the next one. It also opens the first time
-you use the Mac after sleep hours end, to start the day with a pomodoro. A small always-on-top window shows the time left and, when it ends, a summary with **Mark task complete**. If you save a
+you use the Mac after sleep hours end, to start the day with a pomodoro. A small always-on-top window in the top-right corner of the screen you're using (it follows the mouse across displays, as do Focus's other windows) shows the time left and, when it ends, a summary with **Mark task complete**. If you save a
 DeepSeek API key in Settings, the summary also shows a **focus review**: while you focused, Focus recorded which
 apps and pages you kept in front; the timeline went to DeepSeek together with the task's name, tags and
 description, and comes back as a focus level (1–10) and a one-sentence note. The record of what you did lives in

@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.16.0] - 2026-11-24
+
+### Changed
+
+- With several displays, Focus windows open on the screen the mouse is on instead of the laptop screen, and the
+  pomodoro timer and meeting reminder follow you to it.
+
 ## [1.15.1] - 2026-11-13
 
 ### Fixed

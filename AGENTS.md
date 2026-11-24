@@ -58,6 +58,7 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
 | `src/clickup.js` | ClickUp API: token check, task matching, new-task body, and a `fetch` client (`searchTasks`, `createTask`, `completeTask`), `closingStatus`, `parseTeamId` / `parseListId` (ID or ClickUp link). |
 | `src/meeting.js` | Pure meeting logic: Zoom/Meet detection (`meetingKind`), `isAway`, one-minute reminder timing, JXA scan and focus-Meet-tab scripts. |
 | `src/report.js` | Pure daily report: per-mode time tracked each tick (`trackTick`, `state.today`) and the report shown in the window (`dailyReport`). |
+| `src/placement.js` | Pure window bounds: `centered` and `topRight` (stacked `below` another window) in a display's work area, `sameBounds`. |
 | `src/config.js` | Pure config defaults, validation (`parseRecipient` for the WhatsApp number) and `applySettings`. |
 | `src/store.js` | JSON persistence in `userData` (`config.json`, `state.json`, `history.json`, `pomodoros.json`). |
 | `src/icon.js` | Tray icon drawn as a BGRA bitmap (no image assets). |
@@ -146,7 +147,7 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   `state.morningPromptedAt`, set to now on first launch so installing mid-day doesn't open it; skipped while a
   pomodoro is running), counted down in the tray title. It can't start during a
   mode, and session offers are suppressed while focusing. Starting shows `renderer/timer.html`, a frameless,
-  always-on-top window in the primary display's top-right corner, shown with `showInactive` so it never takes focus;
+  always-on-top window in the top-right corner of the cursor's display, shown with `showInactive` so it never takes focus;
   if it is already open it is updated (`timer:update`) rather than replaced. Its height follows the content: a
   `ResizeObserver` in `timer.js` reports it via `timer:resize` (clamped by `TIMER_HEIGHT_LIMITS`). The close button
   stays last in `timer.html`, because Electron lets a later drag region override an earlier no-drag one. When focus ends or is stopped,
@@ -183,6 +184,8 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   is up (`getSystemIdleState` is `locked`). It lives in `state.today` and resets on a new calendar day. `dailyReport` takes every minute
   figure from `state.today`, and pomodoro counts, reviews and tasks from `pomodoros.json` and the Entertainment session
   count from `state.sessionLog`.
+- Windows other than the lock open on the display under the mouse cursor (`activeDisplay`, `placement.centered`);
+  the timer and reminder sit in that display's top-right corner and the tick loop moves them there (`followCursor`).
 - System shutdown must not be blocked (`powerMonitor` `shutdown` sets `systemShuttingDown`).
 
 ## Testing the real app
