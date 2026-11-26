@@ -1,7 +1,8 @@
 const API = 'https://api.clickup.com/api/v2';
 const SEARCH_PAGES = 3;
+// Due tasks are paged to the end; this only stops a runaway loop if ClickUp never reports the last page.
+const DUE_PAGES = 50;
 const MAX_MATCHES = 5;
-const MAX_DUE = 10;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 10000;
 const TASKS_TTL_MS = 60 * 1000;
@@ -52,6 +53,7 @@ const toTask = (raw) => ({
   status: raw.status?.status ?? '',
   due: raw.due_date ? Number(raw.due_date) : null,
   priority: Number(raw.priority?.id) || null,
+  tags: (raw.tags ?? []).map((tag) => String(tag?.name ?? '').toLowerCase()).filter(Boolean),
 });
 
 const startOfDay = (date, offsetDays = 0) =>
@@ -67,7 +69,6 @@ const dueTasks = (tasks, now) =>
   tasks
     .filter((task) => isDueByToday(task.due, now))
     .sort(byDue)
-    .slice(0, MAX_DUE)
     .sort(byPriority);
 
 const RELATIVE = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
@@ -82,11 +83,12 @@ const relativeDue = (due, now) => {
 
 const isDueByToday = (due, now) => due !== null && due < startOfDay(now, 1);
 
-const toListItem = ({ id, name, list, status, due, priority }, now) => ({
+const toListItem = ({ id, name, list, status, due, priority, tags = [] }, now) => ({
   id,
   name,
   list,
   status,
+  tags,
   dueLabel: due === null ? '' : relativeDue(due, now),
   overdue: due !== null && due < startOfDay(now),
   postponable: isDueByToday(due, now),
@@ -154,10 +156,10 @@ const createClient = ({ token, teamId, listId }, fetchImpl = fetch, clock = Date
 
   const me = async () => (userId ??= (await request('/user')).user.id);
 
-  const fetchAssignedTasks = async (filter) => {
+  const fetchAssignedTasks = async (filter, pages) => {
     const id = await me();
     const tasks = [];
-    for (let page = 0; page < SEARCH_PAGES; page++) {
+    for (let page = 0; page < pages; page++) {
       const result = await request(assignedTasksPath(teamId, id, page, filter));
       tasks.push(...(result.tasks ?? []).filter(isOpenTask).map(toTask));
       if (result.last_page !== false) break;
@@ -166,10 +168,10 @@ const createClient = ({ token, teamId, listId }, fetchImpl = fetch, clock = Date
   };
 
   // Search runs on every pause in typing, so reuse the task list for a minute instead of paging through it each time.
-  const assignedTasks = (filter) => {
+  const assignedTasks = (filter, pages = SEARCH_PAGES) => {
     const cached = cache.get(filter);
     if (cached && clock() - cached.at < TASKS_TTL_MS) return cached.tasks;
-    const entry = { at: clock(), tasks: fetchAssignedTasks(filter) };
+    const entry = { at: clock(), tasks: fetchAssignedTasks(filter, pages) };
     entry.tasks.catch(() => cache.get(filter) === entry && cache.delete(filter));
     cache.set(filter, entry);
     return entry.tasks;
@@ -181,7 +183,7 @@ const createClient = ({ token, teamId, listId }, fetchImpl = fetch, clock = Date
     searchTasks: async (query, now = new Date()) =>
       words(query).length
         ? matchTasks(query, await assignedTasks())
-        : dueTasks(await assignedTasks(dueFilter(now)), now),
+        : dueTasks(await assignedTasks(dueFilter(now), DUE_PAGES), now),
     createTask: async (title, now) => {
       const task = toTask(
         await request(`/list/${listId}/task`, { method: 'POST', body: JSON.stringify(newTaskBody(title, await me(), now)) }),
@@ -225,7 +227,6 @@ const createClient = ({ token, teamId, listId }, fetchImpl = fetch, clock = Date
 
 module.exports = {
   MAX_MATCHES,
-  MAX_DUE,
   TASKS_TTL_MS,
   isValidToken,
   isOpenTask,

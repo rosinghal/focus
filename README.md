@@ -49,7 +49,8 @@ works. End it early from the menu bar (it still counts as today's use).
 
 <img src="docs/screenshots/pomodoro.png" alt="Pomodoro task picker" width="320" align="right" />
 
-**Start Pomodoro…** in the menu bar (or **⌥⌘P** from anywhere) opens on your ClickUp tasks due today and overdue. Pick one, or type a goal: Focus
+**Start Pomodoro…** in the menu bar (or **⌥⌘P** from anywhere) opens on all your ClickUp tasks due today and overdue. Tags show on each task, and the tag chips above the list
+show only the tasks with that tag (click again for all). Pick one, or type a goal: Focus
 searches the tasks assigned to you as you type and offers a new one (assigned to you, due today): **Create** just adds
 it to ClickUp, **Create and start** also starts the pomodoro. The star on a task sets or clears its high priority in
 ClickUp, and tasks are listed by priority. **+1** after a due date moves the task to tomorrow, and **↗** opens it in

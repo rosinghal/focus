@@ -12,6 +12,7 @@ let searchTimer = null;
 let searchId = 0;
 let pendingSearch = null;
 let shownTasks = [];
+let tagFilter = null;
 
 const goalName = () => goal.replace(HASHTAG, ' ').replace(/\s+/g, ' ').trim();
 const goalTags = () => [...new Set([...goal.matchAll(HASHTAG)].map((match) => match[2].toLowerCase()))];
@@ -38,6 +39,7 @@ const details = (task) => {
     ...[task.list, task.status].filter(Boolean).map((text) => span('muted', text)),
   ];
   parts.forEach((part, index) => small.append(...(index ? [span('muted', ' · '), part] : [part])));
+  small.append(...(task.tags ?? []).map((tag) => span('tag', `#${tag}`)));
   return small;
 };
 
@@ -100,7 +102,33 @@ const newTaskDetail = () => {
   return small;
 };
 
-const renderTasks = (tasks, preferred = selected()) => {
+const shownTags = () => [...new Set(shownTasks.flatMap((task) => task.tags ?? []))].sort();
+
+const renderTagFilter = () => {
+  const tags = shownTags();
+  if (!tags.includes(tagFilter)) tagFilter = null;
+  $('tag-filter').classList.toggle('hidden', !tags.length);
+  $('tag-filter').replaceChildren(
+    ...tags.map((tag) => {
+      const button = Object.assign(document.createElement('button'), {
+        type: 'button',
+        className: tag === tagFilter ? 'chip active' : 'chip',
+        textContent: `#${tag}`,
+        title: tag === tagFilter ? 'Show all tasks' : `Show only #${tag}`,
+      });
+      button.setAttribute('aria-pressed', String(tag === tagFilter));
+      button.addEventListener('click', () => {
+        tagFilter = tag === tagFilter ? null : tag;
+        renderTasks(shownTasks);
+      });
+      return button;
+    }),
+  );
+};
+
+const renderTasks = (allTasks, preferred = selected()) => {
+  renderTagFilter();
+  const tasks = tagFilter ? allTasks.filter((task) => task.tags?.includes(tagFilter)) : allTasks;
   const offerNew = hasGoal() && !tasks.some(sameName);
   const fallback = tasks[0]?.id ?? (offerNew ? NEW_TASK : null);
   const keep = tasks.some((task) => task.id === preferred) || (offerNew && preferred === NEW_TASK) ? preferred : fallback;

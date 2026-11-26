@@ -135,8 +135,10 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
 - **Pomodoro** (`state.pomodoro`: `phase`, `until`, `task`) starts from the tray's **Start Pomodoro…** or the global
   shortcut `POMODORO_SHORTCUT` (⌥⌘P, `showPomodoro`: shows the timer while a pomodoro is active, does nothing while
   locked), which opens `renderer/pomodoro.html`. It opens on tasks due today or overdue
-  (`searchTasks` with no searchable words fetches with `dueFilter`, then `dueTasks`); every listed task carries a
-  relative due label (`toListItem`). Otherwise a goal is required: as it is typed, `pomodoro:search` (debounced 400 ms in the renderer) lists
+  (`searchTasks` with no searchable words fetches with `dueFilter` through every page, up to `DUE_PAGES`, then `dueTasks`,
+  uncapped); every listed task carries a relative due label and its lowercase tag names (`toTask`, `toListItem`).
+  Tag chips above the list (`renderTagFilter` in `pomodoro.js`) filter the shown tasks in the renderer only, with no
+  ClickUp call; a filter whose tag is gone after a new search is dropped. Otherwise a goal is required: as it is typed, `pomodoro:search` (debounced 400 ms in the renderer) lists
   ClickUp tasks assigned to the token's user (done and closed ones dropped by `isOpenTask`) in `config.clickupTeamId` that share a word with it; `createClient` reuses the assigned-task
   list for `TASKS_TTL_MS`. `pomodoro:start` takes a `taskId` from any search shown in the window (`pomodoroMatches`, a
   Map in main, since searches can resolve out of order) or `create`s a task in `config.clickupListId` (no defaults; `clickupReady` needs a token and workspace), assigned to the user

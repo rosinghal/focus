@@ -2,7 +2,6 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   MAX_MATCHES,
-  MAX_DUE,
   TASKS_TTL_MS,
   isValidToken,
   isOpenTask,
@@ -13,6 +12,7 @@ const {
   words,
   matchTasks,
   dueTasks,
+  toTask,
   relativeDue,
   toListItem,
   assignedTasksPath,
@@ -115,8 +115,8 @@ test('dueTasks keeps overdue and today, earliest first', () => {
     task('yesterday', 'E', day(-1)),
   ];
   assert.deepEqual(dueTasks(tasks, now).map(({ id }) => id), ['late', 'yesterday', 'today']);
-  const many = Array.from({ length: 15 }, (_, i) => task(String(i), 'X', day(-i)));
-  assert.equal(dueTasks(many, now).length, MAX_DUE);
+  const many = Array.from({ length: 150 }, (_, i) => task(String(i), 'X', day(-i)));
+  assert.equal(dueTasks(many, now).length, 150);
 });
 
 test('relativeDue counts calendar days, then weeks and months', () => {
@@ -135,6 +135,7 @@ test('toListItem adds the due label and flags overdue tasks only', () => {
     name: 'A',
     list: 'Inbox',
     status: 'to do',
+    tags: [],
     dueLabel: 'Due 2 days ago',
     overdue: true,
     postponable: true,
@@ -199,8 +200,8 @@ test('searchTasks looks up me once and pages through my tasks', async () => {
   const client = createClient(ids, fetchImpl);
   const found = await client.searchTasks('login');
   assert.deepEqual(found, [
-    { id: '1', name: 'Fix login bug', url: 'u1', list: 'Web', status: '', due: null, priority: null },
-    { id: '2', name: 'Login copy', url: 'u2', list: '', status: '', due: null, priority: null },
+    { id: '1', name: 'Fix login bug', url: 'u1', list: 'Web', status: '', due: null, priority: null, tags: [] },
+    { id: '2', name: 'Login copy', url: 'u2', list: '', status: '', due: null, priority: null, tags: [] },
   ]);
   await client.searchTasks('login');
   assert.equal(calls.filter(({ url }) => url.endsWith('/user')).length, 1);
@@ -217,6 +218,25 @@ test('an empty goal lists tasks due by tomorrow from ClickUp', async () => {
   const found = await createClient(ids, fetchImpl).searchTasks('', now);
   assert.deepEqual(found.map(({ id }) => id), ['1', '2']);
   assert.ok(calls.some(({ url }) => url.includes(dueFilter(now))));
+});
+
+test('due tasks are paged to the last page', async () => {
+  const pageOf = (url) => Number(/page=(\d+)/.exec(url)[1]);
+  const { calls, fetchImpl } = fakeFetch([
+    [/\/user$/, () => ({ user: { id: 7 } })],
+    [
+      /due_date_lt=/,
+      (url) => ({ tasks: [{ id: pageOf(url), name: 'Due', due_date: String(day(-1)) }], last_page: pageOf(url) === 5 }),
+    ],
+  ]);
+  const found = await createClient(ids, fetchImpl).searchTasks('', now);
+  assert.equal(found.length, 6);
+  assert.equal(calls.filter(({ url }) => url.includes('page=')).length, 6);
+});
+
+test('toTask reads tag names in lowercase', () => {
+  assert.deepEqual(toTask({ id: 1, name: 'A', tags: [{ name: 'Bug' }, { name: '' }, {}] }).tags, ['bug']);
+  assert.deepEqual(toTask({ id: 1, name: 'A' }).tags, []);
 });
 
 test('the task list is reused for a minute and refetched after a new task', async () => {

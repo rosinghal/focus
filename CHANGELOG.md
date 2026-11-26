@@ -3,6 +3,18 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.17.0] - 2026-11-26
+
+### Added
+
+- The pomodoro picker shows each task's ClickUp tags, and tag chips above the list filter the shown tasks without
+  asking ClickUp again.
+
+### Changed
+
+- Tasks due today and overdue are fetched page by page until ClickUp has no more, and all of them are listed (it was
+  10).
+
 ## [1.16.0] - 2026-11-24
 
 ### Changed
