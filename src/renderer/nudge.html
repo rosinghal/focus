@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'" />
+    <title>Pomodoro</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="timer reminder">
+      <button type="button" class="timer-close" id="close" aria-label="Close">×</button>
+      <p class="timer-mode">Pomodoro</p>
+      <p class="reminder-title" id="title">Start a pomodoro?</p>
+      <p class="muted" id="text">Pick a task and focus for 25 minutes.</p>
+      <div class="timer-actions">
+        <button type="button" class="primary" id="start">Start pomodoro</button>
+        <button type="button" id="later">Not now</button>
+      </div>
+    </main>
+    <script src="escape.js"></script>
+    <script src="nudge.js"></script>
+  </body>
+</html>

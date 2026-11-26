@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org).
 
+## [1.18.0] - 2026-11-26
+
+### Added
+
+- After 10 minutes at the Mac with no pomodoro, mode or meeting, a small top-right card asks you to start a
+  pomodoro (again every 10 minutes after **Not now**), and it shows once when a meeting ends. It never shows during a
+  meeting.
+- With nothing running, the menu bar shows the minutes since you last had a mode on, e.g. `○ 12m`.
+
 ## [1.17.0] - 2026-11-26
 
 ### Added

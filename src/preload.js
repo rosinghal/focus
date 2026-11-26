@@ -32,6 +32,8 @@ contextBridge.exposeInMainWorld('focusLock', {
   backToMeeting: () => ipcRenderer.invoke('reminder:back'),
   presenting: () => ipcRenderer.invoke('reminder:presenting'),
   fullScreen: () => ipcRenderer.invoke('reminder:fullscreen'),
+  nudgeStatus: () => ipcRenderer.invoke('nudge:status'),
+  startFromNudge: () => ipcRenderer.invoke('nudge:start'),
   todayReport: () => ipcRenderer.invoke('report:status'),
   quit: (passcode) => ipcRenderer.invoke('quit:confirm', passcode),
 });

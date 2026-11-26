@@ -68,6 +68,14 @@ focused minutes, whether it finished, and its focus level and note — is kept i
 <img src="docs/screenshots/timer.png" alt="Pomodoro timer" width="300" />
 <img src="docs/screenshots/timer-summary.png" alt="Pomodoro summary" width="300" />
 
+So you don't forget to start one: after 10 minutes at the Mac with nothing running (no pomodoro, Entertainment or
+Kid mode, and no meeting), a small card in the top-right corner asks **Start a pomodoro?** without taking focus.
+**Not now** asks again 10 minutes later. When a meeting ends, the card shows once straight away. It never shows
+during a meeting, and meeting time, the lock screen or 5 minutes away start the count again. The menu bar shows how
+long you've gone without a mode, e.g. `○ 12m`.
+
+<img src="docs/screenshots/nudge.png" alt="Pomodoro nudge" width="300" />
+
 <br clear="right" />
 
 ### Meeting mode
@@ -82,7 +90,8 @@ permission, which macOS asks for the first time). Close it to skip it for that m
 
 <br clear="right" />
 
-While a mode, pomodoro or sleep-hours unlock is active, the menu bar shows a countdown next to the icon.
+While a mode, pomodoro or sleep-hours unlock is active, the menu bar shows a countdown next to the icon; otherwise,
+after a minute with nothing running, the minutes without one (`○ 12m`).
 
 ### Today's report
 

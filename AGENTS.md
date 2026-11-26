@@ -57,13 +57,14 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
 | `src/ai.js` | DeepSeek call through the Vercel AI SDK (`judge`, dynamic `import` like Baileys). |
 | `src/clickup.js` | ClickUp API: token check, task matching, new-task body, and a `fetch` client (`searchTasks`, `createTask`, `completeTask`), `closingStatus`, `parseTeamId` / `parseListId` (ID or ClickUp link). |
 | `src/meeting.js` | Pure meeting logic: Zoom/Meet detection (`meetingKind`), `isAway`, one-minute reminder timing, JXA scan and focus-Meet-tab scripts. |
+| `src/nudge.js` | Pure pomodoro nudge: active time with no mode (`trackUnfocused`), `isNudgeDue` / `markNudged` (`NUDGE_AFTER_MS`), tray title (`unfocusedTitle`). |
 | `src/report.js` | Pure daily report: per-mode time tracked each tick (`trackTick`, `state.today`) and the report shown in the window (`dailyReport`). |
 | `src/placement.js` | Pure window bounds: `centered` and `topRight` (stacked `below` another window) in a display's work area, `sameBounds`. |
 | `src/config.js` | Pure config defaults, validation (`parseRecipient` for the WhatsApp number) and `applySettings`. |
 | `src/store.js` | JSON persistence in `userData` (`config.json`, `state.json`, `history.json`, `pomodoros.json`). |
 | `src/icon.js` | Tray icon drawn as a BGRA bitmap (no image assets). |
 | `src/preload.js` | `window.focusLock` bridge exposed to renderers. |
-| `src/renderer/` | `lock.*` (lock screen + keypad), `settings.*`, `blocked.*` (session offer and in-session notice), `pomodoro.*` (goal and task picker), `timer.*` (top-right pomodoro timer, summary and focus review), `reminder.*` (meeting reminder), `quit.*` (passcode to quit), `report.*` (today's report), `escape.js` (Esc closes the window unless a `<dialog>` is open; not used on the lock screen), `links.js` (`titleNodes`: URLs in task names shown as their domain, dotted underline, full URL as tooltip; with an `onOpen` handler they are clickable without selecting the task, used by the pomodoro picker via `pomodoro:open-link`, which opens a URL only if it is in that task's name in `pomodoroMatches`; used by pomodoro, timer and report, tested via `vm`), shared `styles.css`. |
+| `src/renderer/` | `lock.*` (lock screen + keypad), `settings.*`, `blocked.*` (session offer and in-session notice), `pomodoro.*` (goal and task picker), `timer.*` (top-right pomodoro timer, summary and focus review), `reminder.*` (meeting reminder), `nudge.*` (start-a-pomodoro card), `quit.*` (passcode to quit), `report.*` (today's report), `escape.js` (Esc closes the window unless a `<dialog>` is open; not used on the lock screen), `links.js` (`titleNodes`: URLs in task names shown as their domain, dotted underline, full URL as tooltip; with an `onOpen` handler they are clickable without selecting the task, used by the pomodoro picker via `pomodoro:open-link`, which opens a URL only if it is in that task's name in `pomodoroMatches`; used by pomodoro, timer and report, tested via `vm`), shared `styles.css`. |
 | `.github/workflows/release.yml` | Release on push to `main` when the version has no release yet: arm64 and x64 DMGs, notes from `CHANGELOG.md`. |
 | `scripts/install-local.sh` | Build and install/replace `/Applications/Focus.app`, then relaunch it. |
 | `test/` | Unit tests for the pure modules. |
@@ -178,6 +179,13 @@ npm run dist     # unsigned macOS .dmg in dist/ (CSC_IDENTITY_AUTO_DISCOVERY=fal
   (`fullScreenScript`, app remembered as `fullScreenApp` since clicking makes Focus frontmost); this is the only feature
   needing Accessibility, requested via `isTrustedAccessibilityClient(true)`. `meetingState`
   lives in memory only; **Presenting** (tray checkbox or reminder button) pauses reminders and the tip until the meeting ends. Detection is off while the lock screen is up.
+- **Pomodoro nudge**: `trackToday` also feeds `trackUnfocused` (memory only), which adds active time (idle under
+  `ACTIVE_IDLE_SECONDS`) while `currentModes` is empty and resets on any mode (meeting included), the lock, sleep or
+  `AWAY_IDLE_SECONDS` idle. `updateNudge` (tick loop) shows `renderer/nudge.html` inactive in the top-right (below the
+  timer, like the reminder) when `isNudgeDue`, then `markNudged`, so **Not now** waits another `NUDGE_AFTER_MS`. A
+  meeting ending (`watchMeeting`, `meetingEnded`) shows it once at once. It is hidden and never shown during a meeting,
+  a pomodoro, a session, the lock or while the picker is open; `nudge:start` opens the picker (`showPomodoro`). With
+  no countdown the tray title shows `unfocusedTitle`.
 - **Today's Report…** (tray, always enabled) opens `renderer/report.html`, which polls `report:status` every 5 s.
   Each tick `trackToday` adds the time since the last tick (`trackTick`; gaps over `MAX_TICK_GAP_MS`, e.g. sleep,
   count nothing) to every active mode (`focus`, `break`, `entertainment`, `kid`, `meeting`, `unlocked`), or to

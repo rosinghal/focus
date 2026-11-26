@@ -50,6 +50,7 @@ const activity = require('./activity');
 const ai = require('./ai');
 const meeting = require('./meeting');
 const report = require('./report');
+const nudge = require('./nudge');
 
 const TICK_MS = 5000;
 const TITLE_TICK_MS = 1000;
@@ -92,6 +93,9 @@ let timerWindow = null;
 let reminderWindow = null;
 let reportWindow = null;
 let reminderShown = null;
+let nudgeWindow = null;
+let unfocused = nudge.NO_UNFOCUSED;
+let meetingEnded = false;
 let fullScreenApp = null;
 let meetingState = { kind: null, awaySince: 0, presenting: false, fullScreenDismissed: false };
 let meetingBrowsers = [];
@@ -120,6 +124,7 @@ const isQuitSender = (event) => quitWindow?.webContents === event.sender;
 const isPomodoroSender = (event) => pomodoroWindow?.webContents === event.sender;
 const isTimerSender = (event) => timerWindow?.webContents === event.sender;
 const isReminderSender = (event) => reminderWindow?.webContents === event.sender;
+const isNudgeSender = (event) => nudgeWindow?.webContents === event.sender;
 const isReportSender = (event) => reportWindow?.webContents === event.sender;
 const inSession = () => blocklist.isSessionActive(Date.now(), state.sessionUntil);
 const isKidSession = () => state.sessionKind === 'kid';
@@ -309,13 +314,14 @@ const currentModes = (now) => [
 ];
 
 const trackToday = (now) => {
-  const today = report.trackTick(state.today, {
+  const reading = {
     now: now.getTime(),
     modes: currentModes(now),
     idleSeconds: powerMonitor.getSystemIdleTime(),
     screenLocked: lockWindows.length > 0 || powerMonitor.getSystemIdleState(ACTIVE_IDLE_SECONDS) === 'locked',
-  });
-  updateState({ today });
+  };
+  unfocused = nudge.trackUnfocused(unfocused, reading);
+  updateState({ today: report.trackTick(state.today, reading) });
 };
 
 const todayReport = () => {
@@ -556,7 +562,7 @@ const updateTrayTitle = () => {
         pomodoroUntil: state.pomodoro?.until ?? 0,
       })
     : null;
-  const title = end ? formatCountdown(end - now.getTime()) : '';
+  const title = end ? formatCountdown(end - now.getTime()) : isConfigured(config) ? nudge.unfocusedTitle(unfocused) : '';
   tray.setTitle(title, { fontType: 'monospacedDigit' });
 };
 
@@ -771,6 +777,7 @@ const moveTo = (win, bounds) => {
 const followCursor = () => {
   if (timerWindow && !timerWindow.isDestroyed()) moveTo(timerWindow, timerBounds());
   if (reminderWindow && !reminderWindow.isDestroyed()) moveTo(reminderWindow, reminderBounds());
+  if (nudgeWindow && !nudgeWindow.isDestroyed()) moveTo(nudgeWindow, reminderBounds());
 };
 
 const showReminder = (kind) => {
@@ -838,6 +845,52 @@ const goFullScreen = async () => {
   return { ok: true };
 };
 
+let nudgeKind = null;
+
+const showNudge = (kind) => {
+  if (nudgeWindow && !nudgeWindow.isDestroyed()) return;
+  nudgeKind = kind;
+  const win = new BrowserWindow({
+    ...reminderBounds(),
+    show: false,
+    frame: false,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    backgroundColor: '#0b1020',
+    webPreferences: { preload: PRELOAD, contextIsolation: true, sandbox: true },
+  });
+  nudgeWindow = win;
+  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  win.on('closed', () => {
+    if (nudgeWindow === win) nudgeWindow = null;
+  });
+  win.once('ready-to-show', () => win.showInactive());
+  win.loadFile(path.join(RENDERER, 'nudge.html'));
+};
+
+const hideNudge = () => {
+  const win = nudgeWindow;
+  nudgeWindow = null;
+  win?.destroy();
+};
+
+// Never during a meeting, a mode or the lock; a meeting that just ended gets one offer straight away.
+const updateNudge = () => {
+  const afterMeeting = meetingEnded;
+  meetingEnded = false;
+  const pickerOpen = pomodoroWindow && !pomodoroWindow.isDestroyed();
+  const allowed =
+    isConfigured(config) && !lockWindows.length && !meetingState.kind && !pomodoroActive() && !inSession() && !pickerOpen;
+  if (!allowed) return hideNudge();
+  if (!afterMeeting && !nudge.isNudgeDue(unfocused)) return;
+  unfocused = nudge.markNudged(unfocused);
+  showNudge(afterMeeting ? 'meeting' : 'idle');
+};
+
 let activityScanning = false;
 
 // Samples the frontmost app and browser tab only while a pomodoro is focusing, so one extra AppleScript each tick.
@@ -866,6 +919,8 @@ const watchMeeting = async (processes) => {
     .catch(() => meeting.NO_SCAN);
   const kind = lockWindows.length ? null : meeting.meetingKind(processes, scan);
   if (kind !== meetingState.kind) {
+    if (kind) hideNudge();
+    else meetingEnded = true;
     meetingState = { kind, awaySince: 0, presenting: false, fullScreenDismissed: false };
     updateTray(new Date());
   }
@@ -920,6 +975,7 @@ const tick = () => {
   updateTrayTitle();
   enforceBlocklist();
   promptMorningPomodoro(now);
+  updateNudge();
   followCursor();
 };
 
@@ -1084,6 +1140,16 @@ const registerIpc = () => {
 
   ipcMain.handle('reminder:presenting', (event) => {
     if (isReminderSender(event)) setPresenting(true);
+  });
+
+  ipcMain.handle('nudge:status', (event) =>
+    isNudgeSender(event) ? { kind: nudgeKind, minutes: nudge.unfocusedMinutes(unfocused) } : null,
+  );
+
+  ipcMain.handle('nudge:start', (event) => {
+    if (!isNudgeSender(event)) return;
+    hideNudge();
+    showPomodoro();
   });
 
   ipcMain.handle('timer:status', (event) => (isTimerSender(event) ? timerView() : null));
